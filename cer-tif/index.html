@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cert.tif</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>CЄЯ.TΨF</h1>
+                <span class="icon">◳</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active">Certification</a>
+                <a href="#" class="nav-item">Vérification</a>
+                <!--a href="#" class="nav-item">Watermark Vis.</a>
+                <a href="#" class="nav-item">Stegano Invis.</a>
+                <a href="#" class="nav-item">Signature Num.</a>
+                <a href="#" class="nav-item">Blockchain OTS</a-->
+                <a href="#" class="nav-item">Métadonnées EXIF</a>
+                <a href="#" class="nav-item">Historique</a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="user-info">
+                    <div>
+                        <div><span></span> User : </div>
+                        <div id="username"></div>
+                        <br>
+                    </div>
+
+                <div class="os-info">Cert.tif v1.0.0</div>
+                <div class="sys-icons">
+                    <span>⚙</span> <span>⚿</span> <span>≡</span> <span>[→</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="window-controls">
+                    <span class="dot close"></span>
+                    <span class="dot min"></span>
+                    <span class="dot max"></span>
+                </div>
+                <div class="address-bar">
+                    <span class="globe"></span> 
+                </div>
+                <div class="actions">
+                    <span>[↑]</span> <span>[+]</span> <span>[⎕]</span>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <h2 class="section-title">PIPELINE DE CERTIFICATION</h2>
+                
+                <div class="info-panel">
+                    <div class="image-preview">
+                        <div class="placeholder-art">
+                            <br>
+                            <p id="depot">[ + ]</p><br>
+                            <input type="file" id="file-upload" accept="image/png, image/jpeg, image/tiff" multiple style="display: none;">
+            
+                        </div>
+                    </div>
+                     <div class="info-content">
+                        <div class="details">
+                             <h3>Fichier : <span class="highlight">en attente...</span></h3>
+                            <br>
+                            <p>Glisser déposer l'image dans la zone ou importer depuis vos fichiers.</p>
+                        </div>
+                        <div class="panel-actions">
+                            <button id="btn-import">[I] Importer</button>
+                            <button id="btn-cancel">[A] Annuler</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <a href="#" class="tab active">Certif complète</a>
+                    <a href="#" class="tab">Watermark</a>
+                    <a href="#" class="tab">EXIF</a>
+                    <a href="#" class="tab"> Stegano</a>
+                    <a href="#" class="tab"> Signature Num.</a>
+                    <a href="#" class="tab"> Blockchain OTS</a>
+                </div>
+
+                <div class="console-panel">
+                    <div class="console-header">
+                        <span></span>
+                    </div>
+                    <div class="console-body">
+                        <!--p class="log-title">INITIATION DU SCRIPT v1.0.0</p>
+                        <ul class="log-list">
+                            <li>> Chargement des dépendances (ImageMagick, OpenStego, OTS)... [OK]</li>
+                            <li>> En attente du fichier source (PNG, JPG, TIFF)...</li>
+                            <li>> Mode interactif : Désactivé</li-->
+                        </ul>
+                        <p>> <span class="prompt">_</span></p>
+                        <div class="console-tags">
+                            <button class="tag">[E] Exporter</button>
+                        </div>
+                    </div>
+                    <div class="console-footer">
+                        <span>[↵] Exécuter</span> <span>[S] Sauvegarder logs</span>
+                        <!--span class="flag">⚑</span-->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="shortcuts-bar">
+        <span>[⌘K] Commandes</span>
+        <span>[↑/↓] Naviguer</span>
+        <span>[ESC] Fermer</span>
+        <span>[TAB] Sélectionner</span>
+        <span class="credit">@projet-app-3A</span>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
