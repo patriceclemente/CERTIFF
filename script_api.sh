@@ -31,7 +31,8 @@ WM_STROKE_WIDTH=0.2
 
 # Stéganographie
 MESSAGE="defaut"
-OPENSTEGO_JAR="/Applications/openstego-0.8.6/lib/openstego.jar"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OPENSTEGO_JAR="$SCRIPT_DIR/openstego.jar"
 OTS_BIN="ots"
 
 # Mot de passe par défaut
@@ -401,28 +402,31 @@ run_filigrane_visible_auto() {
   local STROKE_COLOR="rgb(${WM_STROKE_COLOR})"
 
   magick -size ${WM_SPACING}x${WM_SPACING} \
-        -background none \
-        -fill "$FILL_COLOR" \
-        -stroke "$STROKE_COLOR" \
-        -strokewidth $WM_STROKE_WIDTH \
-        -pointsize $WM_POINTSIZE \
-        -gravity center \
-        label:@"$TMP_TEXT" \
-        -rotate $angle \
-        "${font_option[@]}" \
-        "$TMP_WM"
+         -background none \
+         -fill "$FILL_COLOR" \
+         -stroke "$STROKE_COLOR" \
+         -strokewidth $WM_STROKE_WIDTH \
+         -pointsize $WM_POINTSIZE \
+         -gravity center \
+         label:"$WM_TEXT" \
+         -rotate $angle \
+         "${font_option[@]}" \
+         "$TMP_WM"
 
+  # 2. On l'applique sur l'image source
   if [[ "$PLACE_MODE" == "all" ]]; then
+    # Version corrigée pour éviter le bug de dimension vide
+    local IMG_DIM=$(identify -format "%wx%h" "$INPUT_IMG_PATH")
     magick "$INPUT_IMG_PATH" \
-          -size $(identify -format "%wx%h" "$INPUT_IMG_PATH") tile:"$TMP_WM" \
-          -compose over -composite "$FILE_WM_VISIBLE"
+           -size "$IMG_DIM" tile:"$TMP_WM" \
+           -compose over -composite "$FILE_WM_VISIBLE"
   else
     magick "$INPUT_IMG_PATH" \
-          \( "$TMP_WM" -geometry +10+10 \) -gravity northwest -composite \
-          \( "$TMP_WM" -geometry +10+10 \) -gravity northeast -composite \
-          \( "$TMP_WM" -geometry +10+10 \) -gravity southwest -composite \
-          \( "$TMP_WM" -geometry +10+10 \) -gravity southeast -composite \
-          "$FILE_WM_VISIBLE"
+           \( "$TMP_WM" -geometry +10+10 \) -gravity northwest -composite \
+           \( "$TMP_WM" -geometry +10+10 \) -gravity northeast -composite \
+           \( "$TMP_WM" -geometry +10+10 \) -gravity southwest -composite \
+           \( "$TMP_WM" -geometry +10+10 \) -gravity southeast -composite \
+           "$FILE_WM_VISIBLE"
   fi
 
   rm -f "$TMP_TEXT" "$TMP_WM"
