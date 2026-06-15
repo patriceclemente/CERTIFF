@@ -12,12 +12,20 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Ajoute la classe 'active' à l'élément cliqué
             e.target.classList.add('active');
-            
-            // Simule un changement dans la console en fonction de l'onglet cliqué
-            updateConsoleContent(e.target.innerText);
+
+            const panelCertif = document.getElementById('panel-certification');
+            const panelVerif = document.getElementById('panel-verification');
+            const targetMenu = e.target.innerText.trim();
+
+            if (targetMenu === "Vérification") {
+                if(panelCertif) panelCertif.style.display = "none";
+                if(panelVerif) panelVerif.style.display = "block";
+            } else if (targetMenu === "Certification") {
+                if(panelVerif) panelVerif.style.display = "none";
+                if(panelCertif) panelCertif.style.display = "block";
+            }
         });
     });
-
 
     const dropZone = document.querySelector('.image-preview');
     const fileInput = document.getElementById('file-upload');
@@ -120,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //dico
     const tabExplanations = {
-        "Certif complète" : "[MODE : CERTIF COMPLETE] Pipeline complète de certification.",
+        "Certif complète" : "[MODE : CERTIF COMPLÈTE] Pipeline complète de certification.",
         "Watermark" : "[MODE : WARTERMARK] Incrustation d'un filigrane visible.",
         "EXIF" : "[MODE : EXIF] Injection de métadonnées d'identification.",
         "Stegano" : "[MODE : STEGANO] Insertion de métadonnées invisibles.",
@@ -144,5 +152,69 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         })
     })
+
+    // --- 3. LOGIQUE D'UPLOAD : ZONE VÉRIFICATION ---
+    const dropZoneVerif = document.getElementById('drop-zone-verif');
+    const fileInputVerif = document.getElementById('file-upload-verif');
+    const fileStatusVerif = document.getElementById('file-status-verif');
+    const btnImportVerif = document.getElementById('btn-import-verif');
+    const btnCancelVerif = document.getElementById('btn-cancel-verif');
+    let selectedFilesVerif = [];
+
+    dropZoneVerif.addEventListener('click', () => fileInputVerif.click());
+    if(btnImportVerif) btnImportVerif.addEventListener('click', () => fileInputVerif.click());
+
+    fileInputVerif.addEventListener('change', function(){
+        if (this.files && this.files.length > 0) {
+            selectedFilesVerif = Array.from(this.files);
+            fileStatusVerif.innerText = selectedFilesVerif.length === 1 ? selectedFilesVerif[0].name : `[${selectedFilesVerif.length} FICHIERS ]`;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let htmlContent = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                if (selectedFilesVerif.length > 1) {
+                    htmlContent += `<div style="position: absolute; bottom: 5px; right: 5px; background: var(--text-color); color: var(--bg-color); padding: 2px 6px; font-weight: bold; border: 1px solid var(--bg-color);">+${selectedFilesVerif.length - 1}</div>`;
+                }
+                dropZoneVerif.style.position = "relative";
+                dropZoneVerif.innerHTML = htmlContent;
+                dropZoneVerif.style.border = "none";
+            }
+            reader.readAsDataURL(selectedFilesVerif[0]);
+        }
+    });
+
+    dropZoneVerif.addEventListener('dragover', (e) => { e.preventDefault(); dropZoneVerif.style.backgroundColor = 'var(--text-color)'; dropZoneVerif.style.color = 'var(--bg-color)'; });
+    dropZoneVerif.addEventListener('dragleave', () => { dropZoneVerif.style.backgroundColor = ''; dropZoneVerif.style.color = ''; });
+    dropZoneVerif.addEventListener('drop', (e) => {
+        e.preventDefault(); dropZoneVerif.style.backgroundColor = ''; dropZoneVerif.style.color = '';
+        if (e.dataTransfer.files.length) { fileInputVerif.files = e.dataTransfer.files; fileInputVerif.dispatchEvent(new Event('change')); }
+    });
+
+    if(btnCancelVerif){
+        btnCancelVerif.addEventListener('click', () =>{
+            selectedFilesVerif = [];
+            dropZoneVerif.innerHTML = `<div class="placeholder-art"><br><p id="depot">[ ? ]</p><br></div>`;
+            dropZoneVerif.style.border = "";
+            fileStatusVerif.innerText = "en attente...";
+            fileInputVerif.value = "";
+        });
+    }
+
+    if(consoleHeaderTitle){
+        consoleHeaderTitle.innerText = tabExplanations["Certif complète"];
+    }
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            tabs.forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+
+            const tabName = e.target.innerText.trim();
+            if (tabExplanations[tabName]){
+                consoleHeaderTitle.innerText = tabExplanations[tabName];
+            }
+        });
+    });
 });
 
