@@ -56,6 +56,7 @@ def creer_utilisateur(username, email, mot_de_passe):
         return None
     finally:
         conn.close()
+    return "user_created"
 
 def verifier_identifiants(username ,email, mot_de_passe):
     conn = sqlite3.connect(DB_PATH)
