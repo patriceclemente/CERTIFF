@@ -31,7 +31,8 @@ WM_STROKE_WIDTH=0.2
 
 # Stéganographie
 MESSAGE="defaut"
-OPENSTEGO_JAR="/Applications/openstego-0.8.6/lib/openstego.jar"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OPENSTEGO_JAR="$SCRIPT_DIR/openstego.jar"
 OTS_BIN="ots"
 
 # Mot de passe par défaut
