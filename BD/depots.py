@@ -9,6 +9,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))    # dossier du script
 DB_PATH = os.path.join(BASE_DIR, "DB.db")                # chemin de la base
 STOCKAGE_DIR = os.path.join(BASE_DIR, "stockage")        # dossier des fichiers
 
+#CHEMIN=     # chemin vers les fichier deposer
+
 
 #################################
 ######CREATION DES TABLES########
@@ -53,7 +55,7 @@ def create_status_table():
 ######GESTION DES DEPOTS########
 #################################
 
-def enregistrer_depot(user_id, chemin):
+def enregistrer_depot(user_id, chemin): #chemin doit devenir CHEMIN
     """Enregistre un dépôt : copie le fichier dans STOCKAGE_DIR et ajoute une ligne en base.
     Retourne l'id du dépôt créé."""
     with open(chemin, "rb") as f:
@@ -77,14 +79,50 @@ def enregistrer_depot(user_id, chemin):
     conn.close()
     return depot_id
 
+def supprimer_depot(depot_id):
+    """Supprime un dépôt : efface le fichier du stockage et la ligne en base."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    # récupérer le hash du fichier pour pouvoir le supprimer
+    cursor.execute("SELECT hash_fichier FROM depots WHERE depot_id = ?", (depot_id,))
+    ligne = cursor.fetchone()
+    if not ligne:
+        conn.close()
+        raise ValueError("Depot non trouvé")
+    hash_fichier = ligne[0]
+    # supprimer le fichier du stockage
+    chemin_stockage = os.path.join(STOCKAGE_DIR, hash_fichier)
+    if os.path.exists(chemin_stockage):
+        os.remove(chemin_stockage)
+    # supprimer la ligne en base
+    cursor.execute("DELETE FROM depots WHERE depot_id = ?", (depot_id,))
+    conn.commit()
+    conn.close()
+
 def enregistrer_traitement(depot_id, traitement, status):
     """Enregistre le statut d'un traitement sur un dépôt"""
+    if status not in ("en cours", "terminé", "échoué", "non traité"):
+        raise ValueError("Status invalide")
+    if traitement not in ("signature", "blockchain", "meta-data", "watermarking_v", "steganographie", "watermarking_i"):
+        raise ValueError("Traitement invalide")
+    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO statuts (depot_id, traitement, status)
         VALUES (?, ?, ?)
     """, (depot_id, traitement, status))
+    conn.commit()
+    conn.close()
+
+def supprimer_traitement(depot_id, traitement):
+    """Supprime le statut d'un traitement sur un dépôt"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        DELETE FROM statuts
+        WHERE depot_id = ? AND traitement = ?
+    """, (depot_id, traitement))
     conn.commit()
     conn.close()
 
