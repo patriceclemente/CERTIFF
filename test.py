@@ -2,6 +2,7 @@ from pathlib import Path
 from datetime import datetime
 import shutil
 import subprocess
+from tabnanny import check
 
 
 
@@ -24,6 +25,9 @@ WM_STROKE_WIDTH=0.2
 
 EXIF_CUSTOM_DATE = None
 EXIF_DATE = None
+
+OTS_BIN = "ots"
+FILE_NUM_SIGNED = ""
 
 
 def ensure_dir(directory):
@@ -251,3 +255,31 @@ def run_exif(wm_visible_subdir, file_wm_visible, file_wm_exif):
 
     print(f"[OK] Métadonnées EXIF ajoutées sur {file_wm_exif}")
     return True   
+
+
+def run_blockchain():
+    print("=== Enregistrement sur la blockchain ===")
+
+    if not FILE_NUM_SIGNED.is_file():
+        print(
+            f"[WARN] Fichier signé introuvable : {FILE_NUM_SIGNED}"
+        )
+        return False
+
+    try:
+        subprocess.run(
+            [OTS_BIN, "stamp", str(FILE_NUM_SIGNED)],
+            check = True,
+        )
+    except FileNotFoundError:
+        print(f"[ERROR] Commande '{OTS_BIN}' introuvable")
+        return False
+    except subprocess.CalledProcessError as error:
+        print(f"[ERROR] Échec blockchain : {error}")
+        return False
+
+    print(f"[OK] Blockchain : {FILE_NUM_SIGNED}")
+    return True
+
+
+
