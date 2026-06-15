@@ -204,6 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
         consoleHeaderTitle.innerText = tabExplanations["Certif complète"];
     }
 
+    const consoleStegano = document.getElementById('console-stegano');
+
     tabs.forEach(tab => {
         tab.addEventListener('click', (e) => {
             e.preventDefault();
@@ -214,7 +216,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabExplanations[tabName]){
                 consoleHeaderTitle.innerText = tabExplanations[tabName];
             }
+
+            if(consoleStegano){
+                if(tabName === "Stegano"){
+                    consoleStegano.style.display = "block";
+                }
+                else {
+                    consoleStegano.style.display = "none";
+                }
+            }
         });
     });
+
 });
 

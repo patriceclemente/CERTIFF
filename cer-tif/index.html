@@ -88,25 +88,32 @@
                         <a href="#" class="tab"> Signature Num.</a>
                         <a href="#" class="tab"> Blockchain OTS</a>
                     </div>
-
+                    <div>
+                        
+                    </div>
                     <div class="console-panel">
                         <div class="console-header">
                             <span></span>
                         </div>
                         <div class="console-body">
-                            <!--p class="log-title">INITIATION DU SCRIPT v1.0.0</p>
-                            <ul class="log-list">
-                                <li>> Chargement des dépendances (ImageMagick, OpenStego, OTS)... [OK]</li>
-                                <li>> En attente du fichier source (PNG, JPG, TIFF)...</li>
-                                <li>> Mode interactif : Désactivé</li>
-                            </ul-->
+                            <ul class="log-list"></ul>
+    
+                            <div id="console-stegano" style="display: none;">
+                                <form id="form-stegano-data">
+                                <label for="stegano-message">Message à dissimuler</label>
+                                <input type="text" id="stegano-message" placeholder="...">
+
+                                
+                                </form>
+                            </div>
                             <p>> <span class="prompt">_</span></p>
+                            
                             <div class="console-tags">
                                 <button class="tag">[E] Exporter</button>
                             </div>
                         </div>
                         <div class="console-footer">
-                            <span>[↵] Exécuter</span> <span>[S] Sauvegarder logs</span>
+                            <span>[↵] Exécuter</span> 
                             <!--span class="flag">⚑</span-->
                         </div>
                     </div>
@@ -125,7 +132,7 @@
                             <div class="details">
                                 <h3>Analyse : <span class="highlight" id="file-status-verif">en attente...</span></h3>
                                 <br>
-                                <p>Glisser déposer l'image à vérifier pour lancer l'extraction des preuves.</p>
+                                <p>Glisser déposer l'image dans la zone ou importer depuis vos fichiers.</p>
                             </div>
                             <div class="panel-actions">
                                 <button id="btn-import-verif">[I] Importer</button>
