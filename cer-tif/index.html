@@ -34,7 +34,14 @@
                 </div>
                 <div class="os-info">Cert.tif v1.0.0</div>
                 <div class="sys-icons">
-                    <span>⚙</span> <span>⚿</span> <span>≡</span> <span>[→</span>
+                    <span id="btn-settings">⚙</span> <span>⚿</span> <span>≡</span> <span>[→</span>
+                    <div id="theme-menu" style="display: none;">
+                        <p>//THEMES_</p>
+                        <button class="theme-btn" data-theme="theme-default">> Ambre/Noir (Défaut)</button>
+                        <button class="theme-btn" data-theme="theme-blue">> Cyan/Bleu Nuit</button>
+                        <button class="theme-btn" data-theme="theme-beige">> Bleu/Beige</button>
+                        <button class="theme-btn" data-theme="theme-grey">> Gris/Carbone</button>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -101,52 +108,58 @@
                             <div id="console-watermark" style="display: none;">
                                 <div class="form-group">
                                     <form id="form-watermark-data">
-                                        <label for="watermark-message">//Message à dissimuler : </label>
+                                        <label for="watermark-message">//Message filigrane : </label>
                                         <div class="input-line mirror-container">
                                             <span class="terminal-prompt">> </span>
                                             <span id="watermark-msg-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
-                                            <input type="text" id="watermark-msg" class="hidden-terminal-input" autocomplete="off">
+                                            <input type="text" id="watermark-msg" class="hidden-terminal-input" autocomplete="off" required maxlength="100">
                                         </div>
 
-                                        <label for="watermark-taillep">//Taille de la police (en px): </label>
+                                        <label for="watermark-taillep">//Taille de la police (en px) [↑/↓]: </label>
                                         <div class="input-line mirror-container">
                                             <span class="terminal-prompt">> </span>
                                             <span id="watermark-taillep-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
-                                            <input type="text" id="watermark-taillep" class="hidden-terminal-input" autocomplete="off">
+                                            <input type="number" id="watermark-taillep" class="hidden-terminal-input" autocomplete="off" required min="1" max="100">
                                         </div>
                                         
-                                        <label for="watermark-couleur">//Couleur du texte (R,G,B) : </label>
+                                        <label for="watermark-couleur">//Couleur du texte R,G,B: </label>
                                         <div class="input-line mirror-container">
                                             <span class="terminal-prompt">> </span>
                                             <span id="watermark-couleur-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
-                                            <input type="text" id="watermark-couleur" class="hidden-terminal-input" autocomplete="off">
+                                            <input type="text" id="watermark-couleur" class="hidden-terminal-input" autocomplete="off" required pattern="^\d{1,3},\d{1,3},\d{1,3}$" title="Format requis : R,G,B (ex: 128,128,128)">
                                         </div>
 
-                                        <label for="watermark-opacite">//Opacité (0 à 1) : </label>
+                                        <label for="watermark-opacite">//Opacité (0 à 1) [↑/↓]: </label>
                                         <div class="input-line mirror-container">
                                             <span class="terminal-prompt">> </span>
                                             <span id="watermark-opacite-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
-                                            <input type="text" id="watermark-opacite" class="hidden-terminal-input" autocomplete="off">
+                                            <input type="number" id="watermark-opacite" class="hidden-terminal-input" autocomplete="off" required min="0" max="1" step="0.1">
                                         </div>
 
-                                        <label for="watermark-angle">//Angle d'inclinaison : </label>
+                                        <label for="watermark-angle">//Angle d'inclinaison [↑/↓]: </label>
                                         <div class="input-line mirror-container">
                                             <span class="terminal-prompt">> </span>
                                             <span id="watermark-angle-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
-                                            <input type="text" id="watermark-angle" class="hidden-terminal-input" autocomplete="off">
+                                            <input type="number" id="watermark-angle" class="hidden-terminal-input" autocomplete="off" required min="-360" max="360">
                                         </div>
 
-                                        <label for="watermark-espace">//Espacement (px): </label>
+                                        <label for="watermark-espace">//Espacement (px) [↑/↓]: </label>
                                         <div class="input-line mirror-container">
                                             <span class="terminal-prompt">> </span>
                                             <span id="watermark-espace-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
-                                            <input type="text" id="watermark-espace" class="hidden-terminal-input" autocomplete="off">
+                                            <input type="number" id="watermark-espace" class="hidden-terminal-input" autocomplete="off" required min="10" max="1000">
                                         </div>
                                     </form>
                                     <div id="watermark-default">
-                                        <li>
-
-                                        </li>
+                                        <p>//Default settings : </p>
+                                        <ul>
+                                            <li>©cert-art.fr</li>
+                                            <li>35</li>
+                                            <li>128,128,128</li>
+                                            <li>0.2</li>
+                                            <li>-45</li>
+                                            <li>300</li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
