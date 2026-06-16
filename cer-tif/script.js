@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         consoleHeaderTitle.innerText = tabExplanations["Certif complète"];
     }
 
-    const consoleStegano = document.getElementById('console-stegano');
+    const consoleWatermark = document.getElementById('console-watermark');
 
     tabs.forEach(tab => {
         tab.addEventListener('click', (e) => {
@@ -217,14 +217,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 consoleHeaderTitle.innerText = tabExplanations[tabName];
             }
 
-            if(consoleStegano){
-                if(tabName === "Stegano"){
-                    consoleStegano.style.display = "block";
-                    const firstInput = document.getElementById('stegano-msg');
+            if(consoleWatermark){
+                if(tabName === "Watermark"){
+                    consoleWatermark.style.display = "block";
+                    const firstInput = document.getElementById('watermark-msg');
                     if(firstInput) firstInput.focus();
                 }
                 else {
-                    consoleStegano.style.display = "none";
+                    consoleWatermark.style.display = "none";
                 }
             }
         });
