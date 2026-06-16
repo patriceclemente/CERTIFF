@@ -17,6 +17,7 @@ def create_users_table():
             email TEXT NOT NULL UNIQUE,
             mdp_hash TEXT NOT NULL,
             sel TEXT NOT NULL,
+            confirmed INTEGER DEFAULT 0,
             date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
