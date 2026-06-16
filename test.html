@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Banc d'essai - Cert.tif</title>
+    <style>
+        body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
+        form { background: #222; padding: 20px; border: 1px solid #0f0; max-width: 500px; }
+        div { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 8px; background: #000; color: #0f0; border: 1px solid #0f0; box-sizing: border-box; }
+        button { background: #0f0; color: #000; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; width: 100%; }
+        button:hover { background: #fff; }
+    </style>
+</head>
+<body>
+
+    <h2>[ BANC D'ESSAI TECHNIQUE ]</h2>
+    <p>Ce formulaire envoie directement les données à api.php pour tester le moteur Bash.</p>
+
+    <form action="api.php" method="POST" enctype="multipart/form-data">
+        
+        <div>
+            <label>1. Choisir l'action :</label>
+            <select name="action">
+                <option value="visible">Watermark Visible (visible)</option>
+                <option value="exif">Ajout EXIF (exif)</option>
+                <option value="stegano">Stéganographie (stegano)</option>
+                <option value="pipeline">Pipeline Complet (pipeline)</option>
+            </select>
+        </div>
+
+        <div>
+            <label>2. Sélectionner une image (PNG/JPG) :</label>
+            <input type="file" name="file" required>
+        </div>
+
+        <div>
+    <label>3. Paramètres du Filigrane Visible :</label>
+    
+    <input type="text" name="wm_text" value="© COPYRIGHT 2026">
+    
+    <label style="margin-top:5px; font-size:12px;">Taille de police (px) :</label>
+    <input type="number" name="wm_size" value="30">
+    
+    <label style="margin-top:5px; font-size:12px;">Couleur du texte (R,G,B) :</label>
+    <input type="text" name="wm_color" value="255,0,0"> <label style="margin-top:5px; font-size:12px;">Opacité (de 0.1 à 1.0) :</label>
+    <input type="text" name="wm_opacity" value="0.4">
+    
+    <label style="margin-top:5px; font-size:12px;">Angle d'inclinaison (degrés) :</label>
+    <input type="number" name="wm_angle" value="-30">
+    
+    <label style="margin-top:5px; font-size:12px;">Espacement / Densité (px) :</label>
+    <input type="number" name="wm_spacing" value="200">
+</div>
+
+        <button type="submit">LANCER LE SCRIPT BASH ↵</button>
+    </form>
+
+</body>
+</html>
