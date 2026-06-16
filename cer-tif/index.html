@@ -166,7 +166,15 @@
 
                             <div id="console-stegano" style="display:none">
                                 <div class="form-group">
-                                    <form id="form-stegano-data"
+                                    <form id="form-stegano-data">
+                                        <label for="stegano-msg">//Message à dissimuler: </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="stegnao-msg-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="stegnao-msg-mirror" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+                                        
+                                    </form>
                                 </div>
                             </div>
                             

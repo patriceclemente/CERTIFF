@@ -592,9 +592,9 @@ body.theme-blue {
 body.theme-beige {
     --bg-color: #f5eedc; /* Fond Beige */
     --panel-bg: #f5eedc;
-    --text-color: #878683; /* Texte Bleu foncé */
-    --border-color: #878683;
-    --highlight-bg: #878683;
+    --text-color: #5a5d5e; /* Texte Bleu foncé */
+    --border-color: #5a5d5e;
+    --highlight-bg: #5a5d5e;
 }
 
 body.theme-grey {
