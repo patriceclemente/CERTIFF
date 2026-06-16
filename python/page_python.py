@@ -5,6 +5,7 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 import struct
 import hashlib
+import argparse
 
 def convertir_en_png(chemin_entree, chemin_sortie=None):
 
@@ -153,19 +154,98 @@ def hash_image(image_path: str) -> bytes:
     pixels_bytes = bytes(img.tobytes())  # pixels bruts uniquement
     return hashlib.sha256(pixels_bytes).digest()  # 32 octets
 
-if __name__ == "__main__":
-    # Cacher un message
-    # Trouve le dossier où se trouve le script actuel (le sous-dossier 'python')
-    dossier_script = os.path.dirname(os.path.abspath(__file__))
-    chemin_brut = os.path.join(dossier_script, "..", "image", "JPEG_example_flower.jpg")
-    print(f"[DEBUG] Le chemin nettoyé est : {chemin_brut}")
-    cacher_message(
-        image_path = chemin_brut,
-        message     = "message steg cache",
-        password    = "azerty",
-        output_path = "image_steg.png"
-    )
+def verif_sign(image_path: str, signature: str) -> bool:
+    """Vérifie si le hash d'une image correspond à celui d'une signature."""
+    return hash_image(image_path)==signature
+# if __name__ == "__main__":
+#     # Cacher un message
+#     # Trouve le dossier où se trouve le script actuel (le sous-dossier 'python')
+#     dossier_script = os.path.dirname(os.path.abspath(__file__))
+#     chemin_brut = os.path.join(dossier_script, "..", "image", "JPEG_example_flower.jpg")
+#     print(f"[DEBUG] Le chemin nettoyé est : {chemin_brut}")
+#     cacher_message(
+#         image_path = chemin_brut,
+#         message     = "message steg cache",
+#         password    = "azerty",
+#         output_path = "image_steg.png"
+#     )
 
-    # Extraire le message
-    texte = extraire_message("image_steg.png", "azerty")
-    print(f"Message extrait : {texte}")
+#     # Extraire le message
+#     texte = extraire_message("image_steg.png", "azerty")
+#     print(f"Message extrait : {texte}")
+
+
+# main 
+
+def parse_args():
+    parser = argparse.ArgumentParser (
+        description="Protection d'image, vérification de l'intégrité et de la source"
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # convert
+    
+    convert_parse=subparsers.add_parser("convert", help="Convertir l'image en PNG")
+    convert_parse.add_argument("--input",required=True, help="Chemin vers l'image source")
+    convert_parse.add_argument("--output",required=False, help="Chemin de sortie pour l'image (optionnel)")
+
+    # filigrane invisible (stéganographie)
+
+    fili_inv_parse=subparsers.add_parser("filigrane_invisible", help="Créer un filigrane invisible sur votre image avec un mot de passe")
+    fili_inv_parse.add_argument("--input",required=True, help="Chemin vers l'image source")
+    fili_inv_parse.add_argument("--msg", required=True, help="Message à cacher dans l'image")
+    fili_inv_parse.add_argument("--password", required=True, help="Mot de passe pour chiffrer le message")
+    fili_inv_parse.add_argument("--output",required=False, help="Chemin de sortie pour l'image (optionnel)")
+
+    # signiature
+
+    signature_parse=subparsers.add_parser("signature", help="Crée un hash de l'image comme signature")
+    signature_parse.add_argument("--image",required=True, help="Chemin vers l'image source")
+
+    # signature verif
+
+    signature_verif_parse=subparsers.add_parser("signature_verif", help="Verifie la signature de l'image")
+    signature_verif_parse.add_argument("--image",required=True, help="Chemin vers l'image à vérifier")
+    signature_verif_parse.add_argument("--signature",required=True, help="Signature de l'image initiale")
+
+    # Lecture filigrane invisible 
+
+    read_fili_inv_parse=subparsers.add_parser("Lecture_filigrane_invisible", help="Lecture du filigrane invisible")
+    read_fili_inv_parse.add_argument("--input",required=True, help="Chemin vers l'image source")
+    read_fili_inv_parse.add_argument("--password", required=True, help="Mot de passe pour déchiffrer le message")
+
+    return parser.parse_args()
+
+def main():
+    args=parse_args()
+
+    if args.command == "convert":
+        convertir_en_png(args.input, args.output)
+
+    elif args.command == "filigrane_invisible":
+        try:
+            cacher_message(args.input, args.msg, args.password, args.output)
+        except Exception as e:
+            print(f"[ERROR] {e}")
+    
+    elif args.command == "signature":
+        try:
+            print(hash_image(args.image))
+        except Exception as e:
+            print(f"[ERROR] {e}")
+        
+    elif args.command == "signature_verif":
+        try:
+            print(verif_sign(args.image, args.signature))
+        except Exception as e:
+            print(f"[ERROR] {e}")
+
+    elif args.command == "Lecture_filigrane_invisible":
+        try:
+            print(extraire_message(args.input, args.password))
+        except Exception as e:
+            print(f"[ERROR] {e}")
+
+
+if __name__ == "__main__":
+    main()
