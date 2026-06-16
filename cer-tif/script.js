@@ -229,6 +229,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+    
+    const consoleStegano = document.getElementById('console-stegano');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            tabs.forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+
+            const tabName = e.target.innerText.trim();
+            if (tabExplanations[tabName]){
+                consoleHeaderTitle.innerText = tabExplanations[tabName];
+            }
+
+            if(consoleStegano){
+                if(tabName === "Stegano"){
+                    consoleStegano.style.display = "block";
+                    const firstInput = document.getElementById('stegano-msg');
+                    if(firstInput) firstInput.focus();
+                }
+                else {
+                    consoleStegano.style.display = "none";
+                }
+            }
+        });
+    });
 
     // --- L'effet miroir pour TOUS les curseurs du terminal ---
     const hiddenInputs = document.querySelectorAll('.hidden-terminal-input');
