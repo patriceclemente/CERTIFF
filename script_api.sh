@@ -154,9 +154,38 @@ while [[ $# -gt 0 ]]; do
 done
 set -- "${POSITIONAL_ARGS[@]}"
 
-BASE_DIR="${1:-.}"
-INPUT_IMG="$2"
-EXIF_CUSTOM_DATE="$3"
+# -------------------------------------------------------
+# Mode API CLI / action dispatcher
+# Exemples :
+#   bash protect_image_api.sh visible ./projet image.png
+#   bash protect_image_api.sh exif ./projet image.png
+#   bash protect_image_api.sh pipeline ./projet image.png
+#
+# Compatibilité avec l'ancien usage :
+#   bash protect_image_api.sh ./projet image.png
+# lance le pipeline complet.
+# -------------------------------------------------------
+KNOWN_ACTIONS=" visible exif stegano signature blockchain check_stegano check_signature check_blockchain show_exif report pipeline "
+
+if [[ " $KNOWN_ACTIONS " == *" ${1:-} "* ]]; then
+  ACTION="$1"
+  shift || true
+else
+  ACTION="pipeline"
+fi
+
+# Si on donne seulement l'image après l'action, BASE_DIR vaut "."
+if [[ $# -eq 1 ]]; then
+  BASE_DIR="."
+  INPUT_IMG="$1"
+  EXIF_CUSTOM_DATE=""
+else
+  BASE_DIR="${1:-.}"
+  INPUT_IMG="$2"
+  EXIF_CUSTOM_DATE="$3"
+fi
+
+STATE_FILE="${STATE_FILE:-/tmp/last_img.txt}"
 
 # =======================================================
 # Mode interactif : 
@@ -372,7 +401,6 @@ run_filigrane_visible_auto() {
   local FILL_COLOR="rgba(${WM_TEXT_COLOR},${WM_OPACITY})"
   local STROKE_COLOR="rgb(${WM_STROKE_COLOR})"
 
-# 1. On crée l'image du texte du filigrane proprement
   magick -size ${WM_SPACING}x${WM_SPACING} \
          -background none \
          -fill "$FILL_COLOR" \
@@ -679,27 +707,133 @@ report_final() {
 }
 
 # =======================================================
-# Exécution du pipeline
+# Exécution via dispatcher API CLI
 # =======================================================
 check_dependencies
-ensure_dir "$WATERMARK_VISIBLE_DIR" "$WATERMARK_INVISIBLE_DIR" "$SIGNATURES_DIR" "$NUM_SIGNATURE_DIR"
+
+ensure_dir "$WATERMARK_VISIBLE_DIR"
+ensure_dir "$WATERMARK_INVISIBLE_DIR"
+ensure_dir "$SIGNATURES_DIR"
+ensure_dir "$NUM_SIGNATURE_DIR"
+
+write_state() {
+  local file="$1"
+  if [[ -n "$file" && -f "$file" ]]; then
+    echo "$file" > "$STATE_FILE"
+    echo "[STATE] Dernière image : $file"
+  fi
+}
+
+run_action() {
+  case "$ACTION" in
+    visible)
+      echo "[ACTION] Watermark visible"
+      case $WM_MODE in
+        skip) echo "[INFO] Étape filigrane visible sautée" ;;
+        manual) run_filigrane_visible_manual ;;
+        auto) run_filigrane_visible_auto ;;
+        *) echo "[ERROR] WM_MODE inconnu : $WM_MODE"; exit 1 ;;
+      esac
+      write_state "$FILE_WM_VISIBLE"
+      ;;
+
+    exif)
+      echo "[ACTION] EXIF"
+      run_exif
+      write_state "$FILE_WM_EXIF"
+      ;;
+
+    stegano)
+      echo "[ACTION] Stéganographie"
+      run_stegano
+      write_state "$FILE_WM_INVISIBLE"
+      ;;
+
+    signature)
+      echo "[ACTION] Signature numérique"
+      run_signature
+      write_state "$FILE_NUM_SIGNED"
+      ;;
+
+    blockchain)
+      echo "[ACTION] Blockchain"
+      run_blockchain
+      write_state "$FILE_NUM_SIGNED"
+      ;;
+
+    check_stegano)
+      echo "[ACTION] Vérification stéganographie"
+      check_stegano
+      ;;
+
+    check_signature)
+      echo "[ACTION] Vérification signature"
+      check_signature
+      ;;
+
+    check_blockchain)
+      echo "[ACTION] Vérification blockchain"
+      check_blockchain
+      ;;
+
+    show_exif)
+      echo "[ACTION] Affichage EXIF"
+      show_exif
+      ;;
+
+    report)
+      echo "[ACTION] Rapport final"
+      report_final
+      ;;
+
+    pipeline)
+      echo "[ACTION] Pipeline complet pour $INPUT_IMG"
+      case $WM_MODE in
+        skip) echo "[INFO] Étape filigrane visible sautée" ;;
+        manual) run_filigrane_visible_manual ;;
+        auto) run_filigrane_visible_auto ;;
+        *) echo "[ERROR] WM_MODE inconnu : $WM_MODE"; exit 1 ;;
+      esac
+      write_state "$FILE_WM_VISIBLE"
+
+      run_exif
+      write_state "$FILE_WM_EXIF"
+
+      run_stegano
+      write_state "$FILE_WM_INVISIBLE"
+
+      run_signature
+      write_state "$FILE_NUM_SIGNED"
+
+      run_blockchain
+      write_state "$FILE_NUM_SIGNED"
+      ;;
+
+    *)
+      echo "Action inconnue : $ACTION"
+      echo "Actions disponibles : visible, exif, stegano, signature, blockchain, check_stegano, check_signature, check_blockchain, show_exif, report, pipeline"
+      exit 1
+      ;;
+  esac
+}
 
 if $MODE_INTERACTIVE; then
   echo "=== Mode interactif ==="
+  echo "[INFO] Le mode interactif garde le comportement guidé."
   read -p "Voulez-vous appliquer le filigrane visible ? (y/n) [n] : " choice
-  [[ "$choice" == "y" ]] && run_filigrane_visible_auto
+  [[ "$choice" == "y" ]] && { run_filigrane_visible_auto; write_state "$FILE_WM_VISIBLE"; }
 
   read -p "Voulez-vous ajouter les métadonnées EXIF ? (y/n) [n] : " choice
-  [[ "$choice" == "y" ]] && run_exif
+  [[ "$choice" == "y" ]] && { run_exif; write_state "$FILE_WM_EXIF"; }
 
   read -p "Voulez-vous appliquer le filigrane invisible (stéganographie) ? (y/n) [n] : " choice
-  [[ "$choice" == "y" ]] && run_stegano
+  [[ "$choice" == "y" ]] && { run_stegano; write_state "$FILE_WM_INVISIBLE"; }
 
   read -p "Voulez-vous signer numériquement l'image ? (y/n) [n] : " choice
-  [[ "$choice" == "y" ]] && run_signature
+  [[ "$choice" == "y" ]] && { run_signature; write_state "$FILE_NUM_SIGNED"; }
 
   read -p "Voulez-vous enregistrer sur la blockchain ? (y/n) [n] : " choice
-  [[ "$choice" == "y" ]] && run_blockchain
+  [[ "$choice" == "y" ]] && { run_blockchain; write_state "$FILE_NUM_SIGNED"; }
 
   echo "=== Vérifications interactives ==="
 
@@ -714,17 +848,6 @@ if $MODE_INTERACTIVE; then
 
   read -p "Voulez-vous vérifier l'enregistrement sur la blockchain ? (y/n) [n] : " choice
   [[ "$choice" == "y" ]] && { echo "[OPTIONS Vérif Blockchain]"; echo "  Fichier OTS : ${FILE_NUM_SIGNED}.ots"; echo "  Commande : $OTS_BIN"; check_blockchain; }
-
-
 else
-  echo "[INFO] Pipeline complet pour $INPUT_IMG"
-  case $WM_MODE in
-      skip) echo "[INFO] Étape filigrane visible sautée" ;;
-      manual) run_filigrane_visible_manual ;;
-      auto) run_filigrane_visible_auto ;;
-  esac
-  run_exif
-  run_stegano
-  run_signature
-  run_blockchain
+  run_action
 fi
