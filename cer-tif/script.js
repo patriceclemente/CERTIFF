@@ -220,12 +220,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if(consoleStegano){
                 if(tabName === "Stegano"){
                     consoleStegano.style.display = "block";
+                    const firstInput = document.getElementById('stegano-msg');
+                    if(firstInput) firstInput.focus();
                 }
                 else {
                     consoleStegano.style.display = "none";
                 }
             }
         });
+    });
+
+    // --- L'effet miroir pour TOUS les curseurs du terminal ---
+    const hiddenInputs = document.querySelectorAll('.hidden-terminal-input');
+
+    hiddenInputs.forEach(input => {
+        // On cherche automatiquement le miroir qui correspond à l'ID de l'input
+        const mirror = document.getElementById(input.id + '-mirror');
+
+        if (mirror) {
+            input.addEventListener('input', (e) => {
+                // Recopie instantanément le texte tapé
+                mirror.textContent = e.target.value;
+            });
+        }
     });
 
 });

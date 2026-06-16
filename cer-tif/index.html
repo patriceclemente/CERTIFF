@@ -99,14 +99,25 @@
                             <ul class="log-list"></ul>
     
                             <div id="console-stegano" style="display: none;">
-                                <form id="form-stegano-data">
-                                <label for="stegano-message">Message à dissimuler</label>
-                                <input type="text" id="stegano-message" placeholder="...">
+                                <div class="form-group">
+                                    <form id="form-stegano-data">
+                                        <label for="stegano-message">//Message à dissimuler : </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="stegano-msg-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="stegano-msg" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
 
-                                
-                                </form>
+                                        <label for="stegano-taillep">//Taille de la police : </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="stegano-taillep-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="stegano-taillep" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+                                        
+                                    </form>
+                                </div>
                             </div>
-                            <p>> <span class="prompt">_</span></p>
                             
                             <div class="console-tags">
                                 <button class="tag">[E] Exporter</button>
