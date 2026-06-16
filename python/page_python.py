@@ -136,6 +136,32 @@ def run_command(command: list[str], **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run(command, check=True, **kwargs)
 
 
+def imagemagick_has_font(font_name: str) -> bool:
+    try:
+        result = subprocess.run(
+            ["magick", "-list", "font"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return False
+
+    font_line = f"Font: {font_name}"
+    return any(line.strip() == font_line for line in result.stdout.splitlines())
+
+
+def get_imagemagick_font_option() -> list[str]:
+    if not WM_FONT:
+        return []
+
+    if imagemagick_has_font(WM_FONT):
+        return ["-font", WM_FONT]
+
+    print(f"[WARN] Police ImageMagick introuvable : {WM_FONT}. Police par defaut utilisee.")
+    return []
+
+
 def usage() -> None:
     print("Usage: python page_python.py [options] [action] base_dir image.png [exif_date]")
     print("Actions : visible, exif, stegano, signature, blockchain,")
@@ -413,8 +439,7 @@ def run_filigrane_visible_auto() -> bool:
         "-gravity",
         "center",
     ]
-    if WM_FONT:
-        command.extend(["-font", WM_FONT])
+    command.extend(get_imagemagick_font_option())
     command.extend([f"label:@{tmp_text}", "-rotate", str(angle), str(tmp_wm)])
 
     try:
@@ -887,31 +912,36 @@ def run_action() -> bool:
     if ACTION == "visible":
         print("[ACTION] Watermark visible")
         ok = run_visible_action()
-        write_state(FILE_WM_VISIBLE)
+        if ok:
+            write_state(FILE_WM_VISIBLE)
         return ok
 
     if ACTION == "exif":
         print("[ACTION] EXIF")
         ok = run_exif()
-        write_state(FILE_WM_EXIF)
+        if ok:
+            write_state(FILE_WM_EXIF)
         return ok
 
     if ACTION == "stegano":
         print("[ACTION] Steganographie")
         ok = run_stegano()
-        write_state(FILE_WM_INVISIBLE)
+        if ok:
+            write_state(FILE_WM_INVISIBLE)
         return ok
 
     if ACTION == "signature":
         print("[ACTION] Signature numerique")
         ok = run_signature()
-        write_state(FILE_NUM_SIGNED)
+        if ok:
+            write_state(FILE_NUM_SIGNED)
         return ok
 
     if ACTION == "blockchain":
         print("[ACTION] Blockchain")
         ok = run_blockchain()
-        write_state(FILE_NUM_SIGNED)
+        if ok:
+            write_state(FILE_NUM_SIGNED)
         return ok
 
     if ACTION == "check_stegano":
@@ -937,15 +967,28 @@ def run_action() -> bool:
     if ACTION == "pipeline":
         print(f"[ACTION] Pipeline complet pour {INPUT_IMG}")
         ok = run_visible_action()
-        write_state(FILE_WM_VISIBLE)
-        ok = run_exif() and ok
-        write_state(FILE_WM_EXIF)
-        ok = run_stegano() and ok
-        write_state(FILE_WM_INVISIBLE)
-        ok = run_signature() and ok
-        write_state(FILE_NUM_SIGNED)
-        ok = run_blockchain() and ok
-        write_state(FILE_NUM_SIGNED)
+        if ok:
+            write_state(FILE_WM_VISIBLE)
+
+        step_ok = run_exif()
+        if step_ok:
+            write_state(FILE_WM_EXIF)
+        ok = step_ok and ok
+
+        step_ok = run_stegano()
+        if step_ok:
+            write_state(FILE_WM_INVISIBLE)
+        ok = step_ok and ok
+
+        step_ok = run_signature()
+        if step_ok:
+            write_state(FILE_NUM_SIGNED)
+        ok = step_ok and ok
+
+        step_ok = run_blockchain()
+        if step_ok:
+            write_state(FILE_NUM_SIGNED)
+        ok = step_ok and ok
         return ok
 
     print(f"Action inconnue : {ACTION}")
@@ -960,28 +1003,38 @@ def run_interactive_flow() -> bool:
 
     choice = input("Voulez-vous appliquer le filigrane visible ? (y/n) [n] : ")
     if choice.lower() == "y":
-        ok = run_filigrane_visible_auto() and ok
-        write_state(FILE_WM_VISIBLE)
+        step_ok = run_filigrane_visible_auto()
+        if step_ok:
+            write_state(FILE_WM_VISIBLE)
+        ok = step_ok and ok
 
     choice = input("Voulez-vous ajouter les metadonnees EXIF ? (y/n) [n] : ")
     if choice.lower() == "y":
-        ok = run_exif() and ok
-        write_state(FILE_WM_EXIF)
+        step_ok = run_exif()
+        if step_ok:
+            write_state(FILE_WM_EXIF)
+        ok = step_ok and ok
 
     choice = input("Voulez-vous appliquer le filigrane invisible (steganographie) ? (y/n) [n] : ")
     if choice.lower() == "y":
-        ok = run_stegano() and ok
-        write_state(FILE_WM_INVISIBLE)
+        step_ok = run_stegano()
+        if step_ok:
+            write_state(FILE_WM_INVISIBLE)
+        ok = step_ok and ok
 
     choice = input("Voulez-vous signer numeriquement l'image ? (y/n) [n] : ")
     if choice.lower() == "y":
-        ok = run_signature() and ok
-        write_state(FILE_NUM_SIGNED)
+        step_ok = run_signature()
+        if step_ok:
+            write_state(FILE_NUM_SIGNED)
+        ok = step_ok and ok
 
     choice = input("Voulez-vous enregistrer sur la blockchain ? (y/n) [n] : ")
     if choice.lower() == "y":
-        ok = run_blockchain() and ok
-        write_state(FILE_NUM_SIGNED)
+        step_ok = run_blockchain()
+        if step_ok:
+            write_state(FILE_NUM_SIGNED)
+        ok = step_ok and ok
 
     print("=== Verifications interactives ===")
 
