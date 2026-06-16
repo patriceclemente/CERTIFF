@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('wm_angle', document.getElementById('watermark-angle').value || "-30");
             formData.append('wm_spacing', document.getElementById('watermark-espace').value || "200");
 
-            fetch('http://localhost:8000/api.php', {
+            fetch('http://localhost:8000/api', {
                 method: 'POST',
                 body: formData
             })
