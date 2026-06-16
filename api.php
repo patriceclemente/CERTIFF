@@ -43,19 +43,22 @@ if (empty($action) || !in_array($action, $allowedActions)) {
 $inputImgPath = '';
 $fileName = '';
 
-if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
-    // Cas A : L'IHM envoie un nouveau fichier physique (ex: à l'étape du filigrane visible)
-    $fileName = basename($_FILES['file']['name']);
-    $targetFilePath = $uploadDir . $fileName;
-    if (move_uploaded_file($_FILES['file']['tmp_name'], $targetFilePath)) {
-        $inputImgPath = $targetFilePath;
+if (isset($_FILES['file'])) {
+    // 💡 AJOUT : Si PHP signale que le fichier dépasse sa configuration interne
+    if ($_FILES['file']['error'] === UPLOAD_ERR_INI_SIZE || $_FILES['file']['error'] === UPLOAD_ERR_FORM_SIZE) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "Le fichier est trop lourd pour le serveur PHP. Augmentez 'upload_max_filesize'."
+        ]);
+        exit;
     }
-} else {
-    // Cas B : Pas de fichier brut envoyé (ex: pour une étape suivante comme 'exif' ou 'blockchain').
-    // On réutilise le nom du fichier précédemment stocké dans 'uploads/' envoyé par le JS
-    $fileName = $_POST['filename'] ?? $_GET['filename'] ?? '';
-    if (!empty($fileName)) {
-        $inputImgPath = $uploadDir . basename($fileName);
+
+    if ($_FILES['file']['error'] === UPLOAD_ERR_OK) {
+        $fileName = basename($_FILES['file']['name']);
+        $targetFilePath = $uploadDir . $fileName;
+        if (move_uploaded_file($_FILES['file']['tmp_name'], $targetFilePath)) {
+            $inputImgPath = $targetFilePath;
+        }
     }
 }
 
@@ -71,18 +74,18 @@ if (empty($inputImgPath) || !file_exists($inputImgPath)) {
 // 3. Collecte dynamique des paramètres optionnels de l'IHM
 $options = [];
 
-// Options de Filigrane Visible
-if (!empty($_POST['wm_mode']))    $options[] = "--wm-mode " . escapeshellarg($_POST['wm_mode']);
-if (!empty($_POST['wm_text']))    $options[] = "--wm-text " . escapeshellarg($_POST['wm_text']);
-if (!empty($_POST['wm_spacing'])) $options[] = "--wm-spacing " . escapeshellarg($_POST['wm_spacing']);
-if (!empty($_POST['wm_size']))    $options[] = "--wm-size " . escapeshellarg($_POST['wm_size']);
-if (!empty($_POST['wm_opacity'])) $options[] = "--wm-opacity " . escapeshellarg($_POST['wm_opacity']);
-if (!empty($_POST['wm_color']))   $options[] = "--wm-color " . escapeshellarg($_POST['wm_color']);
-if (!empty($_POST['wm_angle']))   $options[] = "--wm-angle " . escapeshellarg($_POST['wm_angle']);
-if (!empty($_POST['wm_font']))    $options[] = "--wm-font " . escapeshellarg($_POST['wm_font']);
+//options du filigrane 
+if (isset($_POST['wm_text']) && $_POST['wm_text'] !== '')       $options[] = "--wm-text " . escapeshellarg($_POST['wm_text']);
+if (isset($_POST['wm_spacing']) && $_POST['wm_spacing'] !== '') $options[] = "--wm-spacing " . escapeshellarg($_POST['wm_spacing']);
+if (isset($_POST['wm_size']) && $_POST['wm_size'] !== '')       $options[] = "--wm-size " . escapeshellarg($_POST['wm_size']);
+if (isset($_POST['wm_opacity']) && $_POST['wm_opacity'] !== '') $options[] = "--wm-opacity " . escapeshellarg($_POST['wm_opacity']);
+if (isset($_POST['wm_color']) && $_POST['wm_color'] !== '')     $options[] = "--wm-color " . escapeshellarg($_POST['wm_color']);
+if (isset($_POST['wm_angle']) && $_POST['wm_angle'] !== '')     $options[] = "--wm-angle " . escapeshellarg($_POST['wm_angle']);
 
-// Options de Stéganographie
-if (!empty($_POST['stegano_message'])) $options[] = "--stegano-message " . escapeshellarg($_POST['stegano_message']);
+// message stégano 
+if (isset($_POST['stegano_message']) && $_POST['stegano_message'] !== '') {
+    $options[] = "--stegano-message " . escapeshellarg($_POST['stegano_message']);
+}
 
 // Option de date personnalisée pour l'EXIF (passée en 3ème argument positionnel dans le Bash)
 $exifDateArg = "";
@@ -93,9 +96,9 @@ if ($action === 'exif' && !empty($_POST['exif_date'])) {
 // On assemble les options facultatives sous forme de chaîne
 $optionsStr = implode(" ", $options);
 
-// 4. Construction de la commande exacte attendue par le script de Patrice Clemente
-// Format : bash protect_image.sh [options] [action] [base_dir] [image_path] [exif_date]
-$command = "bash ./protect_image.sh " . 
+// 4. Construction de la commande exacte attendue par le script
+// Format : bash script_api.sh [options] [action] [base_dir] [image_path] [exif_date]
+$command = "bash ./script_api.sh " . 
            $optionsStr . " " . 
            escapeshellarg($action) . " . " . 
            escapeshellarg($inputImgPath) . 
@@ -103,17 +106,32 @@ $command = "bash ./protect_image.sh " .
 
 // 5. Exécution de la commande système locale
 exec($command, $output, $returnCode);
+$extractedMessage = null;
+if ($action === 'check_stegano' && $returnCode === 0) {
+    foreach ($output as $line) {
+        if (stripos($line, 'secret') !== false || stripos($line, 'extrait') !== false || stripos($line, 'message') !== false) {
+            $extractedMessage = trim($line);
+        }
+    }
+}
 
 // 6. Envoi de la réponse structurée en JSON au JavaScript
 if ($returnCode === 0) {
-    echo json_encode([
+    $response = [
         "status" => "success",
         "action_executed" => $action,
         "filename" => $fileName,
         "message" => "L'action atomique [ $action ] s'est exécutée avec succès.",
         "terminal_output" => $output
-    ]);
-} else {
+    ];
+    
+    if ($extractedMessage !== null) {
+        $response["extracted_message"] = $extractedMessage;
+    }
+
+    echo json_encode($response);
+}
+else {
     http_response_code(500);
     echo json_encode([
         "status" => "error",

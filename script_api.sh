@@ -143,7 +143,7 @@ while [[ $# -gt 0 ]]; do
     --wm-spacing) shift; WM_SPACING="$1" ;;
     --wm-size) shift; WM_POINTSIZE="$1" ;;
     --wm-opacity) shift; WM_OPACITY="$1" ;;
-    --wm-color) shift; WM_COLOR="$1" ;;
+    --wm-color) shift; WM_TEXT_COLOR="$1" ;;
     --wm-angle) shift; WM_ANGLE="$1" ;;
     --wm-font) shift; WM_FONT="$1" ;;
     --stegano-message) shift; MESSAGE="$1" ;;
@@ -413,13 +413,14 @@ run_filigrane_visible_auto() {
          "${font_option[@]}" \
          "$TMP_WM"
 
-  # 2. On l'applique sur l'image source
+ # 2. On l'applique sur l'image source
   if [[ "$PLACE_MODE" == "all" ]]; then
     # Version corrigée pour éviter le bug de dimension vide
     local IMG_DIM=$(identify -format "%wx%h" "$INPUT_IMG_PATH")
     magick "$INPUT_IMG_PATH" \
            -size "$IMG_DIM" tile:"$TMP_WM" \
            -compose over -composite "$FILE_WM_VISIBLE"
+
   else
     magick "$INPUT_IMG_PATH" \
            \( "$TMP_WM" -geometry +10+10 \) -gravity northwest -composite \
@@ -709,7 +710,7 @@ report_final() {
 # =======================================================
 # Exécution via dispatcher API CLI
 # =======================================================
-check_dependencies
+#check_dependencies
 
 ensure_dir "$WATERMARK_VISIBLE_DIR"
 ensure_dir "$WATERMARK_INVISIBLE_DIR"
