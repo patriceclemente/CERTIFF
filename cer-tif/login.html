@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cert.tif | Noeud d'accès</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+    <div class="login-wrapper">
+        <div class="login-box">
+            <div class="login-header">
+                <span class="logo-text">CЄЯ.TΨF // ACCESS</span>
+                <span class="lock-icon">⚿</span>
+            </div>
+            
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="username">> USERNAME_</label>
+                    <input type="text" id="username" autocomplete="off" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="email">> E-MAIL_</label>
+                    <input type="email" id="email" autocomplete="off" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">> PASSWORD_</label>
+                    <input type="password" id="password" required>
+                </div>
+                
+                <div class="login-actions">
+                    <button type="submit" id="btn-login">[↵] S'AUTHENTIFIER</button>
+                </div>
+            </form>
+            
+            <div class="login-status" id="login-status"></div>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>

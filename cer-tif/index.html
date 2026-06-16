@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cert.tif</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>CЄЯ.TΨF</h1>
+                <span class="icon">◳</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active">Certification</a>
+                <a href="#" class="nav-item">Vérification</a>
+                <!--a href="#" class="nav-item">Watermark Vis.</a>
+                <a href="#" class="nav-item">Stegano Invis.</a>
+                <a href="#" class="nav-item">Signature Num.</a>
+                <a href="#" class="nav-item">Blockchain OTS</a-->
+                <a href="#" class="nav-item">Métadonnées EXIF</a>
+                <a href="#" class="nav-item">Historique</a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="user-info">
+                    <div>
+                        <div><span></span> User : </div>
+                        <div id="username"></div>
+                    </div>
+                </div>
+                <div class="os-info">Cert.tif v1.0.0</div>
+                <div class="sys-icons">
+                    <span>⚙</span> <span>⚿</span> <span>≡</span> <span>[→</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="window-controls">
+                    <span class="dot close"></span>
+                    <span class="dot min"></span>
+                    <span class="dot max"></span>
+                </div>
+                <div class="address-bar">
+                    <span class="globe"></span> 
+                </div>
+                <div class="actions">
+                    <span>[↑]</span> <span>[+]</span> <span>[⎕]</span>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div id="panel-certification">
+                    <h2 class="section-title">PIPELINE DE CERTIFICATION</h2>
+                    
+                    <div class="info-panel">
+                        <div class="image-preview">
+                            <div class="placeholder-art">
+                                <br>
+                                <p id="depot">[ + ]</p><br>
+                                <input type="file" id="file-upload" accept="image/png, image/jpeg, image/tiff" multiple style="display: none;">
+                
+                            </div>
+                        </div>
+                        <div class="info-content">
+                            <div class="details">
+                                <h3>Fichier : <span class="highlight">en attente...</span></h3>
+                                <br>
+                                <p>Glisser déposer l'image dans la zone ou importer depuis vos fichiers.</p>
+                            </div>
+                            <div class="panel-actions">
+                                <button id="btn-import">[I] Importer</button>
+                                <button id="btn-cancel">[A] Annuler</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tabs">
+                        <a href="#" class="tab active">Certif complète</a>
+                        <a href="#" class="tab">Watermark</a>
+                        <a href="#" class="tab">EXIF</a>
+                        <a href="#" class="tab"> Stegano</a>
+                        <a href="#" class="tab"> Signature Num.</a>
+                        <a href="#" class="tab"> Blockchain OTS</a>
+                    </div>
+                    <div>
+                        
+                    </div>
+                    <div class="console-panel">
+                        <div class="console-header">
+                            <span></span>
+                        </div>
+                        <div class="console-body">
+                            <ul class="log-list"></ul>
+    
+                            <div id="console-watermark" style="display: none;">
+                                <div class="form-group">
+                                    <form id="form-watermark-data">
+                                        <label for="watermark-message">//Message à dissimuler : </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-msg-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="watermark-msg" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+
+                                        <label for="watermark-taillep">//Taille de la police (en px): </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-taillep-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="watermark-taillep" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+                                        
+                                        <label for="watermark-couleur">//Couleur du texte (R,G,B) : </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-couleur-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="watermark-couleur" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+
+                                        <label for="watermark-opacite">//Opacité (0 à 1) : </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-opacite-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="watermark-opacite" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+
+                                        <label for="watermark-angle">//Angle d'inclinaison : </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-angle-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="watermark-angle" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+
+                                        <label for="watermark-espace">//Espacement (px): </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-espace-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="watermark-espace" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+                                    </form>
+                                    <div id="watermark-default">
+                                        <li>
+
+                                        </li>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="console-tags">
+                                <button class="tag">[E] Exporter</button>
+                            </div>
+                        </div>
+                        <div class="console-footer">
+                            <span>[↵] Exécuter</span> 
+                            <!--span class="flag">⚑</span-->
+                        </div>
+                    </div>
+                </div>
+                <div id="panel-verification" style="display: none;">
+                    <h2 class="section-title">MODULE DE VÉRIFICATION</h2>
+                    <div class="info-panel">
+                        <div class="image-preview" id="drop-zone-verif">
+                            <div class="placeholder-art">
+                                <br>
+                                <p id="depot">[ ? ]</p><br>
+                                <input type="file" id="file-upload-verif" accept="image/png, image/jpeg, image/tiff" multiple style="display: none;">
+                            </div>
+                        </div>
+                        <div class="info-content">
+                            <div class="details">
+                                <h3>Analyse : <span class="highlight" id="file-status-verif">en attente...</span></h3>
+                                <br>
+                                <p>Glisser déposer l'image dans la zone ou importer depuis vos fichiers.</p>
+                            </div>
+                            <div class="panel-actions">
+                                <button id="btn-import-verif">[I] Importer</button>
+                                <button id="btn-cancel-verif">[A] Annuler</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="shortcuts-bar">
+        <span>[⌘K] Commandes</span>
+        <span>[↑/↓] Naviguer</span>
+        <span>[ESC] Fermer</span>
+        <span>[TAB] Sélectionner</span>
+        <span class="credit">@projet-app-3A</span>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
