@@ -201,6 +201,7 @@ body {
 .notifications {
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
 
 .sys-icons {
@@ -226,7 +227,7 @@ body {
     align-items: center;
     padding: 8px 15px;
     border-bottom: 1px solid var(--border-color);
-    background-color: #000;
+    background-color: var(--panel-bg);
 }
 
 .window-controls .dot {
@@ -330,12 +331,7 @@ body {
     text-decoration: none;
 }
 
-/*.tab.active {
-    background-color: var(--highlight-bg);
-    color: var(--bg-color);
-}*/
-
-.tab:hover, .nav-item.active {
+.tab:hover, .nav-item.active, .tab.active {
     color: var(--bg-color);
     background-color: var(--highlight-bg);
     text-shadow: 0 0 5px var(--text-color);
@@ -499,4 +495,112 @@ body {
 /* Réactive le clignotement uniquement sur la ligne active */
 .mirror-container:focus-within .prompt {
     animation: blink 1s step-end infinite; 
+}
+
+/* --- Mise en page Formulaire vs Default Settings --- */
+.form-group {
+    display: flex;
+    flex-direction: row;
+    gap: 40px; /* Espace net entre le formulaire et la box de droite */
+    align-items: flex-start; /* Aligne les deux blocs par le haut */
+}
+
+#form-watermark-data {
+    flex: 1; /* Le formulaire s'étire pour prendre toute la place disponible à gauche */
+}
+
+#watermark-default {
+    opacity: 0.7;
+    border: 1px solid var(--border-color); /* Crée la fameuse box style terminal */
+    padding: 15px;
+    min-width: 200px; /* Largeur de la box de droite */
+}
+
+#watermark-default p {
+    margin-bottom: 15px;
+    text-decoration: underline; /* Souligne le titre de la box */
+}
+
+#watermark-default ul {
+    list-style: none; /* Enlève les puces par défaut du navigateur */
+}
+
+#watermark-default li {
+    margin-bottom: 8px;
+}
+#watermark-default li::before {
+    content: "> "; /* Ajoute un petit chevron devant chaque réglage */
+}
+
+#btn-settings{
+    cursor: pointer;
+    font-size: 1.5rem;
+    transform: translateY(-5px);
+}
+
+#btn-settings:hover, #btn-settings:focus{
+    color: var(--highlight-bg);
+}
+
+
+/* --- Menu des Thèmes --- */
+#theme-menu {
+    position: absolute;
+    bottom: 90px; /* S'affiche juste au-dessus de l'engrenage */
+    left: 5px;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 200px;
+    z-index: 100;
+}
+
+#theme-menu p {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 5px;
+}
+
+.theme-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    text-align: left;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    padding: 3px 0;
+}
+
+.theme-btn:hover {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
+
+/* --- Palettes des Thèmes --- */
+body.theme-blue {
+    --bg-color: #051320;
+    --panel-bg: #051320;
+    --text-color: #64ffda;
+    --border-color: #64ffda;
+    --highlight-bg: #64ffda;
+}
+
+body.theme-beige {
+    --bg-color: #f5eedc; /* Fond Beige */
+    --panel-bg: #f5eedc;
+    --text-color: #878683; /* Texte Bleu foncé */
+    --border-color: #878683;
+    --highlight-bg: #878683;
+}
+
+body.theme-grey {
+    --bg-color: #1e1e1e;
+    --panel-bg: #1e1e1e;
+    --text-color: #d4d4d4;
+    --border-color: #d4d4d4;
+    --highlight-bg: #d4d4d4;
 }

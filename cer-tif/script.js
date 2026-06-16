@@ -247,3 +247,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+// --- GESTION DES THÈMES ---
+    const btnSettings = document.getElementById('btn-settings');
+    const themeMenu = document.getElementById('theme-menu');
+    const themeBtns = document.querySelectorAll('.theme-btn');
+
+    if (btnSettings && themeMenu) {
+        // 1. Ouvrir/Fermer le menu au clic sur l'engrenage
+        btnSettings.addEventListener('click', (e) => {
+            e.stopPropagation(); // Évite la fermeture immédiate
+            themeMenu.style.display = themeMenu.style.display === 'none' ? 'flex' : 'none';
+        });
+
+        // 2. Fermer le menu si on clique n'importe où ailleurs sur la page
+        document.addEventListener('click', () => {
+            themeMenu.style.display = 'none';
+        });
+
+        // 3. Empêcher la fermeture si on clique à l'intérieur du menu
+        themeMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // 4. Appliquer le thème choisi
+        themeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Nettoyer les anciens thèmes
+                document.body.classList.remove('theme-blue', 'theme-beige', 'theme-grey');
+                
+                // Ajouter le nouveau (sauf si on retourne au défaut)
+                const selectedTheme = btn.getAttribute('data-theme');
+                if (selectedTheme !== 'theme-default') {
+                    document.body.classList.add(selectedTheme);
+                }
+                
+                // Fermer le menu
+                themeMenu.style.display = 'none';
+            });
+        });
+    }
