@@ -1,0 +1,72 @@
+# ==========================================
+# Environnement Virtuel & Python
+# ==========================================
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+.cfg
+
+# ==========================================
+# Configuration Éditeur (VS Code)
+# ==========================================
+.vscode/
+!.vscode/extensions.json
+.history/
+*.code-workspace
+
+# ==========================================
+# Fichiers de configuration sensibles (.env)
+# ==========================================
+.env
+.env.local
+.env.*
+*.pot
+*.pyuser
+
+# ==========================================
+# Spécifique au Projet Cert-Art (Dossiers locaux)
+# ==========================================
+# Dossiers générés localement par le script de traitement d'images
+images_brutes/
+watermark-filigrane-visible/
+watermark-filigrane-invisible/
+watermark-signatures/
+watermark-signature_numérique/
+
+# Dossier de téléversement temporaire de l'API FastAPI
+uploads/
+
+# Fichiers de signatures ou clés générés localement
+*.sig
+pw.txt
+signature.txt
+
+# ==========================================
+# Systèmes d'exploitation
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
