@@ -227,7 +227,7 @@ body {
     align-items: center;
     padding: 8px 15px;
     border-bottom: 1px solid var(--border-color);
-    background-color: #000;
+    background-color: var(--panel-bg);
 }
 
 .window-controls .dot {
@@ -584,17 +584,17 @@ body {
 body.theme-blue {
     --bg-color: #051320;
     --panel-bg: #051320;
-    --text-color: #00ffcc;
-    --border-color: #00ffcc;
-    --highlight-bg: #00ffcc;
+    --text-color: #64ffda;
+    --border-color: #64ffda;
+    --highlight-bg: #64ffda;
 }
 
 body.theme-beige {
     --bg-color: #f5eedc; /* Fond Beige */
     --panel-bg: #f5eedc;
-    --text-color: #1a365d; /* Texte Bleu foncé */
-    --border-color: #1a365d;
-    --highlight-bg: #1a365d;
+    --text-color: #878683; /* Texte Bleu foncé */
+    --border-color: #878683;
+    --highlight-bg: #878683;
 }
 
 body.theme-grey {
