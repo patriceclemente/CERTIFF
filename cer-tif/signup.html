@@ -3,42 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cert.tif | Noeud d'accès</title>
+    <title>Cert.tif | Création de nœud</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="login-body">
     <div class="login-wrapper">
         <div class="login-box">
             <div class="login-header">
-                <span class="logo-text">CЄЯ.TΨF // ACCESS</span>
+                <span class="logo-text">CЄЯ.TΨF // REGISTER</span>
                 <span class="lock-icon">⚿</span>
             </div>
-            
-            <form id="login-form">
+
+            <form id="signup-form">
                 <div class="input-group">
-                    <label for="identifiant">> USERNAME / E-MAIL_</label>
-                    <input type="text" id="identifiant" autocomplete="off" required>
+                    <label for="username">> USERNAME_</label>
+                    <input type="text" id="username" autocomplete="off" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="email">> E-MAIL_</label>
+                    <input type="email" id="email" autocomplete="off" required>
                 </div>
 
                 <div class="input-group">
                     <label for="password">> PASSWORD_</label>
                     <input type="password" id="password" required>
                 </div>
-                
+
                 <div class="login-actions">
-                    <button type="submit" id="btn-login">[↵] S'AUTHENTIFIER</button>
+                    <button type="submit" id="btn-signup">[↵] CRÉER LE COMPTE</button>
                 </div>
             </form>
-            
-            <div class="login-status" id="login-status"></div>
- 
+
+            <div class="login-status" id="signup-status"></div>
+
             <div style="margin-top:20px;border-top:1px dashed var(--border-color);padding-top:15px;font-size:0.85rem;">
-                > PAS DE COMPTE ?
-                <a href="signup.html" style="color:var(--text-color);">[ CRÉER UN COMPTE ]</a>
+                > COMPTE EXISTANT ?
+                <a href="login.html" style="color:var(--text-color);">[ SE CONNECTER ]</a>
             </div>
         </div>
     </div>
- 
-    <script src="login.js"></script>
+
+    <script src="signup.js"></script>
 </body>
 </html>

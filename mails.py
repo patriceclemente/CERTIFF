@@ -1,41 +1,52 @@
-from dotenv import load_dotenv
-load_dotenv()
+import os
+import smtplib
+from email.message import EmailMessage
 
-import os 
-import smtplib
-from email.message import EmailMessage
-#from itsdangerous import URLSafeTimedSerializerimport
-import smtplib
-from email.message import EmailMessage
+from dotenv import load_dotenv
 from itsdangerous import URLSafeTimedSerializer
 
+# charge les variables du fichier .env (SECRET_KEY, GMAIL_ADDR, GMAIL_APP_PASS)
+load_dotenv()
 
-# il faut définir ces variables d'environnement dans le fichier .env 
-SECRET_KEY = os.environ["SECRET_KEY"]        # une longue chaîne aléatoire, a generer une seul fois
-GMAIL_ADDR = os.environ["GMAIL_ADDR"]        # noreply.certif@gmail.com
-GMAIL_PASS = os.environ["GMAIL_APP_PASS"]    # code 16 lettres a 
+SECRET_KEY = os.environ["SECRET_KEY"]
+GMAIL_ADDR = os.environ["GMAIL_ADDR"] 
+GMAIL_PASS = os.environ["GMAIL_APP_PASS"] 
 
 serializer = URLSafeTimedSerializer(SECRET_KEY)
 
+#  TOKENS
 def generer_token(email):
+    """Fabrique un token signé qui contient l'email."""
     return serializer.dumps(email, salt="confirmation-email")
 
+
 def verifier_token(token, expiration=3600):
+    """Vérifie le token. Retourne l'email si valide et non expiré, sinon None.
+    expiration = durée de validité en secondes (3600 = 1h)."""
     try:
         return serializer.loads(token, salt="confirmation-email", max_age=expiration)
     except Exception:
         return None
 
+
+
+#  ENVOI DU MAIL
 def envoyer_mail_confirmation(destinataire, lien):
     msg = EmailMessage()
-    msg["Subject"] = "Confirmez votre compte"
+    msg["Subject"] = "Confirmez votre compte Cert.tif"
     msg["From"] = GMAIL_ADDR          # doit être la même adresse que le login
     msg["To"] = destinataire
-    msg.set_content(f"Confirmez votre compte {lien}")
+    msg.set_content(
+        "Bienvenue sur Cert.tif !\n\n"
+        f"Confirmez votre compte en cliquant ici : {lien}\n\n"
+        "Ce lien expire dans 1 heure."
+    )
     msg.add_alternative(f"""
-        <html><body>
-            <h2> Gros texte !</h2>
-            <p><a href="{lien}">click here</a></p>
+        <html><body style="font-family:monospace;background:#050505;color:#ff9900;padding:20px;">
+            <h2>CЄЯ.TΨF // REGISTER</h2>
+            <p>Bienvenue ! Cliquez pour confirmer votre compte :</p>
+            <p><a href="{lien}" style="color:#ff9900;">&gt; CONFIRMER MON COMPTE</a></p>
+            <p style="opacity:0.6;">Ce lien expire dans 1 heure.</p>
         </body></html>
     """, subtype="html")
 
@@ -43,12 +54,3 @@ def envoyer_mail_confirmation(destinataire, lien):
         serveur.starttls()
         serveur.login(GMAIL_ADDR, GMAIL_PASS)
         serveur.send_message(msg)
-
-#test
-"""if __name__ == "__main__":
-    # envoie un mail de test à toi-même
-    for mail in ["mail@example.com", "mail2@example.com"]: 
-        mon_email = mail
-        lien_test = "https://cer-tif.com/confirmer/test123"
-        envoyer_mail_confirmation(mon_email, lien_test)
-        print("Mail envoyé ! Va vérifier ta boîte de réception.")"""
