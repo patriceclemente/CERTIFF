@@ -9,16 +9,12 @@ from itsdangerous import URLSafeTimedSerializer
 load_dotenv()
 
 SECRET_KEY = os.environ["SECRET_KEY"]
-GMAIL_ADDR = os.environ["GMAIL_ADDR"]        # tonadresse@gmail.com
-GMAIL_PASS = os.environ["GMAIL_APP_PASS"]    # le mot de passe d'application (16 lettres)
+GMAIL_ADDR = os.environ["GMAIL_ADDR"] 
+GMAIL_PASS = os.environ["GMAIL_APP_PASS"] 
 
 serializer = URLSafeTimedSerializer(SECRET_KEY)
 
-
-# =========================================================
 #  TOKENS
-# =========================================================
-
 def generer_token(email):
     """Fabrique un token signé qui contient l'email."""
     return serializer.dumps(email, salt="confirmation-email")
@@ -33,10 +29,8 @@ def verifier_token(token, expiration=3600):
         return None
 
 
-# =========================================================
-#  ENVOI DU MAIL
-# =========================================================
 
+#  ENVOI DU MAIL
 def envoyer_mail_confirmation(destinataire, lien):
     msg = EmailMessage()
     msg["Subject"] = "Confirmez votre compte Cert.tif"
@@ -60,9 +54,3 @@ def envoyer_mail_confirmation(destinataire, lien):
         serveur.starttls()
         serveur.login(GMAIL_ADDR, GMAIL_PASS)
         serveur.send_message(msg)
-
-
-# petit test manuel : python mails.py  -> envoie un mail à soi-même
-if __name__ == "__main__":
-    envoyer_mail_confirmation(GMAIL_ADDR, "http://localhost:5000/confirmer/test")
-    print("Mail de test envoyé à", GMAIL_ADDR)
