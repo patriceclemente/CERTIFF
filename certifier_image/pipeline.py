@@ -270,11 +270,15 @@ def run_signature() -> bool:
     ensure_dir(state.WM_SIGNATURE_SUBDIR)
     print("=== Signature numerique ===")
 
+    if check_stegano()==False:
+        print("[WARN] Echec de verification du filigrane invisible, la signature ne peut pas se faire")
+        return False 
+
     carrier_file = first_existing([state.FILE_WM_INVISIBLE, state.FILE_WM_EXIF, state.FILE_WM_VISIBLE, state.INPUT_IMG_PATH])
-    if not carrier_file:
-        print("[WARN] Image source introuvable, saut signature")
-        return False
-    explain_source_fallback("Signature", carrier_file, state.FILE_WM_INVISIBLE)
+    # if not carrier_file:
+    #     print("[WARN] Image source introuvable, saut signature")
+    #     return False
+    # explain_source_fallback("Signature", carrier_file, state.FILE_WM_INVISIBLE)
 
     ensure_dir(state.SIG_FILE.parent)
     try:
