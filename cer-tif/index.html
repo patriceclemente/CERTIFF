@@ -22,7 +22,7 @@
                 <a href="#" class="nav-item">Stegano Invis.</a>
                 <a href="#" class="nav-item">Signature Num.</a>
                 <a href="#" class="nav-item">Blockchain OTS</a-->
-                <a href="#" class="nav-item">Métadonnées EXIF</a>
+                <!--a href="#" class="nav-item">Métadonnées EXIF</a-->
                 <a href="#" class="nav-item">Historique</a>
             </nav>
 
@@ -247,8 +247,8 @@
                             </div>
 
                             <div id="console-block" style="display:none">
+                                <p id="notif">Vous seriez notifié par mail lorsque le l'envoie sera terminé.</p>
                             </div>
-                            
                             <div class="console-tags" id="action-buttons" style="display:none;">
                                 <button class="tag">[E] Exporter</button>
                                 <button class="tag" id="btn-next">[N] Next </button>
@@ -269,7 +269,7 @@
                             <div class="placeholder-art">
                                 <br>
                                 <p id="depot">[ ? ]</p><br>
-                                <input type="file" id="file-upload-verif" accept="image/png, image/jpeg, image/tiff" multiple style="display: none;">
+                                <input type="file" id="file-upload-verif" accept="image/png, image/jpeg, image/tiff"y multiple style="display: none;">
                             </div>
                         </div>
                         <div class="info-content">
@@ -283,7 +283,9 @@
                                 <button id="btn-cancel-verif">[A] Annuler</button>
                             </div>
                         </div>
-                        
+                    </div>
+                    <div id="exif-action-container" style="display: none; margin-bottom: 15px;">
+                        <button id="btn-export-exif">[↓] Extraire les métadonnées EXIF</button>
                     </div>
                     <div id="verif-results-container" style="display: flex; flex-direction: column; gap: 15px;">
 

@@ -214,6 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
             fileInputVerif.value = "";
             const verifContainer = document.getElementById('verif-results-container');
             if (verifContainer) verifContainer.innerHTML = '';
+            // Recache le bouton d'export EXIF
+            const exifAction = document.getElementById('exif-action-container');
+            if (exifAction) exifAction.style.display = 'none';
         });
     }
 
@@ -481,6 +484,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- NOUVEAU : GÉNÉRATION DES BLOCS DE VÉRIFICATION ---
             if (verifContainer) {
                 verifContainer.innerHTML = ''; // On nettoie les anciens rapports
+
+                // Rend le bouton d'export EXIF visible
+                const exifAction = document.getElementById('exif-action-container');
+                if (exifAction) exifAction.style.display = 'block';
                 
                 selectedFilesVerif.forEach((file, index) => {
                     // On crée une div "console-panel" pour chaque fichier
