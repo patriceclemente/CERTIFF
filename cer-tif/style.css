@@ -205,6 +205,8 @@ body {
 }
 
 .sys-icons {
+    margin-left: 20px;
+    margin-right: 20px;
     display: flex;
     justify-content: space-between;
     font-size: 1.2rem;
@@ -428,7 +430,7 @@ body {
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 0px;
 }
 
 .form-group label {
@@ -505,30 +507,30 @@ body {
     align-items: flex-start; /* Aligne les deux blocs par le haut */
 }
 
-#form-watermark-data {
+.form-data {
     flex: 1; /* Le formulaire s'étire pour prendre toute la place disponible à gauche */
 }
 
-#watermark-default {
+.default {
     opacity: 0.7;
     border: 1px solid var(--border-color); /* Crée la fameuse box style terminal */
     padding: 15px;
     min-width: 200px; /* Largeur de la box de droite */
 }
 
-#watermark-default p {
+.default p {
     margin-bottom: 15px;
     text-decoration: underline; /* Souligne le titre de la box */
 }
 
-#watermark-default ul {
+.default ul {
     list-style: none; /* Enlève les puces par défaut du navigateur */
 }
 
-#watermark-default li {
+.default li {
     margin-bottom: 8px;
 }
-#watermark-default li::before {
+.default li::before {
     content: "> "; /* Ajoute un petit chevron devant chaque réglage */
 }
 
@@ -539,7 +541,8 @@ body {
 }
 
 #btn-settings:hover, #btn-settings:focus{
-    color: var(--highlight-bg);
+    background-color: var(--text-color);
+    color: var(--bg-color);
 }
 
 
@@ -604,3 +607,38 @@ body.theme-grey {
     --border-color: #d4d4d4;
     --highlight-bg: #d4d4d4;
 }
+/* --- Console Signature Numérique --- */
+#affichage-mdp {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end; /* Aligne le bas du bouton avec le bas de la zone de mot de passe */
+    gap: 20px; /* Espace entre le bouton et la zone MDP */
+    
+    margin-bottom: 25px;
+    padding-bottom: 25px;
+    border-bottom: 1px dashed var(--border-color); /* Ligne de séparation élégante */
+}
+
+#btn-signer {
+    font-size: 0.8rem;
+    height: 30px; /* Même hauteur que la zone de texte pour une symétrie parfaite */
+    width: 120px;
+}
+
+.mdp-box label {
+    opacity: 0.7;
+    display: block;
+    margin-bottom: 8px;
+}
+
+#zone-mdp {
+    min-width: 250px; /* Corrige l'erreur de largeur */
+    height: 30px;
+    border: 1px solid var(--border-color);
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-weight: bold;
+}
+

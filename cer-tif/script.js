@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "EXIF" : "[MODE : EXIF] Injection de métadonnées d'identification.",
         "Stegano" : "[MODE : STEGANO] Insertion de métadonnées invisibles.",
         "Signature Num." : "[MODE : SIGNATURE] Chiffrement asymétrique pour authentification d'identité.",
-        "Blockachain OTS" : "[MODE : BLOCKCHAIN] Horodatage et preuve."
+        "Blockchain OTS" : "[MODE : BLOCKCHAIN] Horodatage et preuve."
     }
 
     if(consoleHeaderTitle){
@@ -204,6 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
         consoleHeaderTitle.innerText = tabExplanations["Certif complète"];
     }
 
+    /*===========TAB WATEMARK=============*/
+    
     const consoleWatermark = document.getElementById('console-watermark');
 
     tabs.forEach(tab => {
@@ -229,6 +231,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    /*===========TAB EXIF=============*/
+
+    const consoleExif = document.getElementById('console-exif');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            tabs.forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+
+            const tabName = e.target.innerText.trim();
+            if (tabExplanations[tabName]){
+                consoleHeaderTitle.innerText = tabExplanations[tabName];
+            }
+
+            if(consoleExif){
+                if(tabName === "EXIF"){
+                    consoleExif.style.display = "block";
+                    const firstInput = document.getElementById('exif-auteur');
+                    if(firstInput) firstInput.focus();
+                }
+                else {
+                    consoleExif.style.display = "none";
+                }
+            }
+        });
+    });
+
+
+    /*===========TAB STEGANO=============*/
     
     const consoleStegano = document.getElementById('console-stegano');
 
@@ -256,6 +289,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    /*===========TAB SIGNATURE=============*/
+
+    const consoleSign = document.getElementById('console-sign');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            tabs.forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+
+            const tabName = e.target.innerText.trim();
+            if (tabExplanations[tabName]){
+                consoleHeaderTitle.innerText = tabExplanations[tabName];
+            }
+
+            if(consoleSign){
+                if(tabName === "Signature Num."){
+                    consoleSign.style.display = "block";
+                    const firstInput = document.getElementById('sign-mdp');
+                    if(firstInput) firstInput.focus();
+                }
+                else {
+                    consoleSign.style.display = "none";
+                }
+            }
+        });
+    });
+
+    /*===========TAB BLOCKCHAIN=============*/
+
+    const consoleBlock = document.getElementById('console-block');
+    const btnExport = document.querySelector('.console-tags .tag');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            tabs.forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+
+            const tabName = e.target.innerText.trim();
+            if (tabExplanations[tabName]){
+                consoleHeaderTitle.innerText = tabExplanations[tabName];
+            }
+
+            if(consoleBlock){
+                if(tabName === "Blockchain OTS"){
+                    consoleBlock.style.display = "block";
+                    if(btnExport) btnExport.innerText = "[+] Envoyer vers la Blockchain";
+                }
+                else {
+                    consoleBlock.style.display = "none";
+                    if(btnExport) btnExport.innerText = "[E] Exporter";
+                }
+            }
+        });
+    });
+
     // --- L'effet miroir pour TOUS les curseurs du terminal ---
     const hiddenInputs = document.querySelectorAll('.hidden-terminal-input');
 
@@ -271,9 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-});
-
-// --- GESTION DES THÈMES ---
+    // --- GESTION DES THÈMES ---
     const btnSettings = document.getElementById('btn-settings');
     const themeMenu = document.getElementById('theme-menu');
     const themeBtns = document.querySelectorAll('.theme-btn');
@@ -312,3 +400,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+});
+
