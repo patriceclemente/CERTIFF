@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //dico
     const tabExplanations = {
-        "" : "[CHOISIR UN MODE]",
+        "" : "[CHOISIR UN MODE CERTIFICATION] : Vous pouvez effectuer les certifications séparémment et exporter dès que besoin.",
         "Watermark" : "[MODE : WARTERMARK] Incrustation d'un filigrane visible.",
         "EXIF" : "[MODE : EXIF] Injection de métadonnées d'identification.",
         "Stegano" : "[MODE : STEGANO] Insertion de métadonnées invisibles.",
@@ -138,6 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if(consoleHeaderTitle){
         consoleHeaderTitle.innerText = tabExplanations[""];
+        
+        // --- MASQUER LES LIGNES ET LE BOUTON EXÉCUTER AU CHARGEMENT ---
+        const consoleHeader = document.querySelector('.console-header');
+        const consoleFooter = document.querySelector('.console-footer');
+        if (consoleHeader) consoleHeader.style.borderBottom = "none";
+        if (consoleFooter) consoleFooter.style.display = "none";
     }
 
     tabs.forEach(tab => {
@@ -153,6 +159,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const actionButtons = document.getElementById('action-buttons');
             if (actionButtons) actionButtons.style.display = 'flex';
+
+            // --- RÉAFFICHER LES LIGNES ET LE BOUTON EXÉCUTER ---
+            const consoleHeader = document.querySelector('.console-header');
+            const consoleFooter = document.querySelector('.console-footer');
+            if (consoleHeader) consoleHeader.style.borderBottom = "1px dashed var(--border-color)";
+            if (consoleFooter) consoleFooter.style.display = "flex";
         })
     })
 
