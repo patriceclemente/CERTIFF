@@ -41,10 +41,25 @@ def accueil():
     # page d'accueil = login
     return app.send_static_file("login.html")
 
+# =========================================================
+#  API — INFO SESSION
+# =========================================================
+@app.route("/api/me")
+def me():
+    user_id = session.get("user_id")
+    if user_id is None:
+        return jsonify({"ok": False, "message": "Non connecté"}), 401
+
+    username = users.get_username(user_id)   # voir note ci-dessous
+    if username is None:
+        return jsonify({"ok": False, "message": "Utilisateur introuvable"}), 404
+
+    return jsonify({"ok": True, "username": username})
 
 # =========================================================
 #  API — AUTHENTIFICATION (partie login/signup)
 # =========================================================
+
 @app.route("/api/inscription", methods=["POST"])
 def inscription():
     data = request.get_json()

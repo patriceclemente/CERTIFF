@@ -37,6 +37,24 @@ document.addEventListener('DOMContentLoaded', () => {
         btnImport.addEventListener('click', () => fileInput.click());
     }
 
+    // affichage username
+    
+    fetch('/api/me')
+    .then(response => response.json())
+    .then(data => {
+        const usernameDiv = document.getElementById('username');
+        if (data.ok) {
+            usernameDiv.innerText = data.username;
+        } else {
+            usernameDiv.innerText = 'Invité';
+            // optionnel : si non connecté, renvoyer vers le login
+            // window.location.href = '/';
+        }
+    })
+    .catch(err => {
+        console.error('Impossible de récupérer l\'utilisateur :', err);
+    });
+
     // Variable globale pour stocker tous les fichiers du lot
     let selectedFiles = [];
 
