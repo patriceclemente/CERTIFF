@@ -30,6 +30,7 @@ DEFAULT_PW = "defaut"
 
 ACTION = "pipeline"
 BASE_DIR = Path(".")
+STORAGE_DIR = None
 INPUT_IMG = None
 EXIF_CUSTOM_DATE = None
 STATE_FILE = Path(os.environ.get("STATE_FILE", Path(tempfile.gettempdir()) / "last_img.txt"))

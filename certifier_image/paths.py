@@ -9,6 +9,39 @@ from . import state
 from .utils import ensure_dir, run_command
 
 
+def storage_root() -> Path:
+    state.STORAGE_DIR = state.BASE_DIR / "DB" / "stockage"
+    return state.STORAGE_DIR
+
+
+def output_stems() -> tuple[str, str, str, str]:
+    base = state.IMG_BASE
+    visible = f"{base}-watermarked"
+
+    if state.ACTION == "pipeline":
+        exif = f"{visible}_exif"
+        invisible = f"{exif}-stegano"
+        signed = f"{invisible}-signed"
+    elif state.ACTION == "exif":
+        exif = f"{base}-exif"
+        invisible = f"{exif}-stegano"
+        signed = f"{invisible}-signed"
+    elif state.ACTION == "stegano":
+        exif = f"{base}-exif"
+        invisible = f"{base}-stegano"
+        signed = f"{invisible}-signed"
+    elif state.ACTION == "signature":
+        exif = f"{base}-exif"
+        invisible = f"{base}-stegano"
+        signed = f"{base}-signed"
+    else:
+        exif = f"{base}-exif"
+        invisible = f"{base}-stegano"
+        signed = f"{base}-signed"
+
+    return visible, exif, invisible, signed
+
+
 def prepare_input_image() -> bool:
 
     if state.INPUT_IMG is None:
@@ -21,7 +54,7 @@ def prepare_input_image() -> bool:
         return False
 
     raw_base = source.stem
-    input_dir = state.BASE_DIR / "images_brutes"
+    input_dir = storage_root() / "images_brutes"
     input_img_subdir = input_dir / raw_base
 
     print(f"DEBUG: INPUT_IMG_SUBDIR='{input_img_subdir}'")
@@ -40,8 +73,7 @@ def prepare_input_image() -> bool:
         if same_file:
             state.INPUT_IMG_PATH = source
         else:
-            if not dest_png.exists():
-                shutil.copy2(source, dest_png)
+            shutil.copy2(source, dest_png)
             state.INPUT_IMG_PATH = dest_png
     else:
         if dest_png.exists():
@@ -86,10 +118,11 @@ def prepare_input_image() -> bool:
 
 def prepare_pipeline_paths() -> bool:
 
-    state.WATERMARK_VISIBLE_DIR = state.BASE_DIR / "watermark-filigrane-visible"
-    state.WATERMARK_INVISIBLE_DIR = state.BASE_DIR / "watermark-filigrane-invisible"
-    state.SIGNATURES_DIR = state.BASE_DIR / "watermark-signatures"
-    state.NUM_SIGNATURE_DIR = state.BASE_DIR / "watermark-signature_num\u00e9rique"
+    root = storage_root()
+    state.WATERMARK_VISIBLE_DIR = root / "watermark-filigrane-visible"
+    state.WATERMARK_INVISIBLE_DIR = root / "watermark-filigrane-invisible"
+    state.SIGNATURES_DIR = root / "watermark-signatures"
+    state.NUM_SIGNATURE_DIR = root / "watermark-signature_num\u00e9rique"
 
     state.WM_VISIBLE_SUBDIR = state.WATERMARK_VISIBLE_DIR / state.IMG_BASE
     state.WM_INVISIBLE_SUBDIR = state.WATERMARK_INVISIBLE_DIR / state.IMG_BASE
@@ -105,10 +138,11 @@ def prepare_pipeline_paths() -> bool:
         if not ensure_dir(directory):
             return False
 
-    state.FILE_WM_VISIBLE = state.WM_VISIBLE_SUBDIR / f"{state.IMG_BASE}-watermarked.{state.IMG_EXT}"
-    state.FILE_WM_EXIF = state.WM_VISIBLE_SUBDIR / f"{state.IMG_BASE}-watermarked_exif.{state.IMG_EXT}"
-    state.FILE_WM_INVISIBLE = state.WM_INVISIBLE_SUBDIR / f"{state.IMG_BASE}-watermarked_exif-openstego.{state.IMG_EXT}"
-    state.FILE_NUM_SIGNED = state.WM_NUM_SIGNATURE_SUBDIR / f"{state.IMG_BASE}-watermarked_exif-openstego-num_signed.{state.IMG_EXT}"
+    visible_stem, exif_stem, invisible_stem, signed_stem = output_stems()
+    state.FILE_WM_VISIBLE = state.WM_VISIBLE_SUBDIR / f"{visible_stem}.{state.IMG_EXT}"
+    state.FILE_WM_EXIF = state.WM_VISIBLE_SUBDIR / f"{exif_stem}.{state.IMG_EXT}"
+    state.FILE_WM_INVISIBLE = state.WM_INVISIBLE_SUBDIR / f"{invisible_stem}.{state.IMG_EXT}"
+    state.FILE_NUM_SIGNED = state.WM_NUM_SIGNATURE_SUBDIR / f"{signed_stem}.{state.IMG_EXT}"
     state.SIG_FILE = state.WM_SIGNATURE_SUBDIR / "bleu-pastel.sig"
     state.EXIF_DATE = state.EXIF_CUSTOM_DATE or datetime.now().strftime("%Y:%m:%d %H:%M:%S")
     return True
