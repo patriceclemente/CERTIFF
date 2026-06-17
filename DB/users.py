@@ -24,6 +24,16 @@ def create_users_table():
     conn.commit()
     conn.close()
 
+def confirm_user(email):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET confirmed = 1 WHERE email = ?", (email,))
+    conn.commit()
+    modifie = cursor.rowcount > 0
+    conn.close()
+    return modifie
+
+
 def creer_utilisateur(username, email, mot_de_passe):
     #precheck si l'email ou le username existe déjà
     if check_user_exists(email):
@@ -59,15 +69,21 @@ def creer_utilisateur(username, email, mot_de_passe):
         conn.close()
     return "user_created"
 
-def verifier_identifiants(username ,email, mot_de_passe):
+def verifier_identifiants(identifiant, mot_de_passe):
+    """Vérifie un couple (identifiant, mot de passe).
+    'identifiant' peut être l'email OU le username.
+    Retourne : 'ok', 'non_confirme' ou 'invalide'."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT mdp_hash, sel FROM users WHERE email = ? OR username = ?", (email, username))
+    cursor.execute(
+        "SELECT mdp_hash, sel, confirmed FROM users WHERE email = ? OR username = ?",
+        (identifiant, identifiant)
+    )
     result = cursor.fetchone()
     conn.close()
     if result is None:
-        return False  # utilisateur non trouvé
-    mdp_hash_stored, sel = result
+        return "invalide"  # utilisateur non trouvé
+    mdp_hash_stored, sel, confirmed = result
     # hasher le mot de passe fourni avec le même sel
     mdp_hash_provided = hashlib.pbkdf2_hmac(
         "sha256",
@@ -75,7 +91,12 @@ def verifier_identifiants(username ,email, mot_de_passe):
         bytes.fromhex(sel),
         100000
     ).hex()
-    return mdp_hash_provided == mdp_hash_stored
+    if mdp_hash_provided != mdp_hash_stored:
+        return "invalide"  # mauvais mot de passe
+    if not confirmed:
+        return "non_confirme"  # compte pas encore confirmé par mail
+    return "ok"
+
 
 def modifie_mdp(email, nouveau_mdp):
     # générer un nouveau sel
