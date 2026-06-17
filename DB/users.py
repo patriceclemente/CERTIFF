@@ -46,6 +46,16 @@ def get_user_id(identifiant):
     conn.close()
     return result[0] if result else None
 
+def get_username(user_id):
+    """Retourne le username à partir de l'user_id, ou None."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT username FROM users WHERE user_id = ?", (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+
 def create_user(username, email, mot_de_passe):
     #precheck si l'email ou le username existe déjà
     if check_user_exists(email):
