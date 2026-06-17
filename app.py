@@ -229,4 +229,4 @@ def handle_api():
 
 if __name__ == "__main__":
     print("Serveur Flask (auth + certification) sur http://localhost:5000")
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)

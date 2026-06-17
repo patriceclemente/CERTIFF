@@ -542,27 +542,32 @@ body {
     transform: translateY(-5px);
 }*/
 
-#btn-settings {
+#btn-settings, #btn-logout {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 22px;  /* Une boîte de 22x22 parfaite */
     height: 22px; 
-    font-size: 1.2rem; /* Réduit proportionnellement pour ne pas déborder */
     cursor: pointer;
-    transform: translateY(-3px); /* Réajustement vertical léger */
+    transition: all 0.2s;
+    transform: translateY(-3px);
 }
 
-#btn-settings:hover, #btn-settings:focus, #btn-settings:active {
+#btn-settings {
+    width: 22px;
+    font-size: 1.2rem;
+    
+}
+
+#btn-logout {
+    font-size: 1rem;
+    padding: 0 3px;
+}
+
+#btn-settings:hover, #btn-settings:focus, #btn-settings:active,
+#btn-logout:hover, #btn-logout:focus, #btn-logout:active {
     background-color: var(--text-color);
     color: var(--bg-color);
 }
-
-#btn-settings:hover, #btn-settings:focus, #btn-settings:active {
-    background-color: var(--text-color);
-    color: var(--bg-color);
-}
-
 
 /* --- Menu des Thèmes --- */
 #theme-menu {
@@ -640,7 +645,7 @@ body.theme-grey {
 #btn-signer {
     font-size: 0.8rem;
     height: 30px; /* Même hauteur que la zone de texte pour une symétrie parfaite */
-    width: 120px;
+    width: 200px;
 }
 
 .mdp-box label {
@@ -696,8 +701,8 @@ body.theme-grey {
     color: var(--bg-color);
 }
 
-#btn-export-exif {
-    width: 100%; /* S'étale sur toute la largeur de la console */
+/*#btn-export-exif {
+    width: 100%; 
     background-color: transparent;
     border: 1px dashed var(--border-color);
     color: var(--text-color);
@@ -713,4 +718,4 @@ body.theme-grey {
     background-color: var(--text-color);
     color: var(--bg-color);
     border: 1px solid var(--bg-color);
-}
+}*/
