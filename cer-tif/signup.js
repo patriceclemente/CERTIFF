@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await reponse.json();
 
             if (data.ok) {
-                statusDiv.innerText = "> COMPTE CRÉÉ. VÉRIFIE TES MAILS POUR CONFIRMER.";
+                statusDiv.innerText = "> COMPTE CRÉÉ. vérifier vos mails pour pouvoir accéder à votre compte.";
                 statusDiv.style.color = "var(--text-color)";
                 form.reset();
             } else {
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusDiv.style.color = "red";
             }
         } catch (err) {
-            statusDiv.innerText = "> ERREUR RÉSEAU : SERVEUR INJOIGNABLE.";
+            statusDiv.innerText = "> ERREUR " + err.message;
             statusDiv.style.color = "red";
         }
     });
