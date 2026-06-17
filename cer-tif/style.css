@@ -205,7 +205,7 @@ body {
 }
 
 .sys-icons {
-    margin-left: 20px;
+    margin-left: 10px;
     margin-right: 20px;
     display: flex;
     justify-content: space-between;
@@ -534,13 +534,31 @@ body {
     content: "> "; /* Ajoute un petit chevron devant chaque réglage */
 }
 
-#btn-settings{
+/*#btn-settings{
+    text-align: center;
+    width: 30px;
     cursor: pointer;
     font-size: 1.5rem;
     transform: translateY(-5px);
+}*/
+
+#btn-settings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;  /* Une boîte de 22x22 parfaite */
+    height: 22px; 
+    font-size: 1.2rem; /* Réduit proportionnellement pour ne pas déborder */
+    cursor: pointer;
+    transform: translateY(-3px); /* Réajustement vertical léger */
 }
 
-#btn-settings:hover, #btn-settings:focus{
+#btn-settings:hover, #btn-settings:focus, #btn-settings:active {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
+
+#btn-settings:hover, #btn-settings:focus, #btn-settings:active {
     background-color: var(--text-color);
     color: var(--bg-color);
 }

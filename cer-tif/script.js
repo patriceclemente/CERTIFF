@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //dico
     const tabExplanations = {
-        "Certif complète" : "[MODE : CERTIF COMPLÈTE] Pipeline complète de certification.",
+        "" : "[CHOISIR UN MODE]",
         "Watermark" : "[MODE : WARTERMARK] Incrustation d'un filigrane visible.",
         "EXIF" : "[MODE : EXIF] Injection de métadonnées d'identification.",
         "Stegano" : "[MODE : STEGANO] Insertion de métadonnées invisibles.",
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if(consoleHeaderTitle){
-        consoleHeaderTitle.innerText = tabExplanations["Certif complète"];
+        consoleHeaderTitle.innerText = tabExplanations[""];
     }
 
     tabs.forEach(tab => {
@@ -150,6 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabExplanations[tabName]){
                 consoleHeaderTitle.innerText = tabExplanations[tabName];
             }
+
+            const actionButtons = document.getElementById('action-buttons');
+            if (actionButtons) actionButtons.style.display = 'flex';
         })
     })
 
@@ -201,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if(consoleHeaderTitle){
-        consoleHeaderTitle.innerText = tabExplanations["Certif complète"];
+        consoleHeaderTitle.innerText = tabExplanations[""];
     }
 
     /*===========TAB WATEMARK=============*/
@@ -321,6 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const consoleBlock = document.getElementById('console-block');
     const btnExport = document.querySelector('.console-tags .tag');
+    const btnNextBlock = document.getElementById('btn-next');
 
     tabs.forEach(tab => {
         tab.addEventListener('click', (e) => {
@@ -337,10 +341,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(tabName === "Blockchain OTS"){
                     consoleBlock.style.display = "block";
                     if(btnExport) btnExport.innerText = "[+] Envoyer vers la Blockchain";
+                    if(btnNextBlock) btnNextBlock.style.display = "none";
                 }
                 else {
                     consoleBlock.style.display = "none";
                     if(btnExport) btnExport.innerText = "[E] Exporter";
+                    if(btnNextBlock) btnNextBlock.style.display = "inline-block";
                 }
             }
         });
@@ -398,6 +404,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Fermer le menu
                 themeMenu.style.display = 'none';
             });
+        });
+    }
+
+    // --- GESTION DU BOUTON NEXT ---
+    const btnNext = document.getElementById('btn-next');
+    
+    if (btnNext) {
+        btnNext.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // 1. Trouver l'onglet actuellement actif
+            const activeTab = document.querySelector('.tab.active');
+            const tabsArray = Array.from(tabs); // Transforme la NodeList en vrai tableau
+            
+            if (activeTab) {
+                // 2. Trouver sa position (son index)
+                const currentIndex = tabsArray.indexOf(activeTab);
+                
+                // 3. S'il y a un onglet après celui-ci, on simule un clic dessus !
+                if (currentIndex < tabsArray.length - 1) {
+                    tabsArray[currentIndex + 1].click();
+                }
+            } else {
+                // Si aucun onglet n'est actif par défaut, on active le tout premier
+                if (tabsArray.length > 0) {
+                    tabsArray[0].click();
+                }
+            }
         });
     }
 
