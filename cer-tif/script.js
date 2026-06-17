@@ -212,6 +212,8 @@ document.addEventListener('DOMContentLoaded', () => {
             dropZoneVerif.style.border = "";
             fileStatusVerif.innerText = "en attente...";
             fileInputVerif.value = "";
+            const verifContainer = document.getElementById('verif-results-container');
+            if (verifContainer) verifContainer.innerHTML = '';
         });
     }
 
@@ -412,6 +414,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (selectedTheme !== 'theme-default') {
                     document.body.classList.add(selectedTheme);
                 }
+
+                // --- AJOUT : METTRE À JOUR LE FAVICON ---
+                const favicon = document.getElementById('dynamic-favicon');
+                if (favicon) {
+                    if (selectedTheme === 'theme-default') favicon.href = 'icons/icon-amber.png';
+                    if (selectedTheme === 'theme-blue') favicon.href = 'icons/icon-blue.png';
+                    if (selectedTheme === 'theme-beige') favicon.href = 'icons/icon-beige.png';
+                    if (selectedTheme === 'theme-grey') favicon.href = 'icons/icon-grey.png';
+                }
                 
                 // Fermer le menu
                 themeMenu.style.display = 'none';
@@ -446,6 +457,68 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    
+    fileInputVerif.addEventListener('change', function(){
+        const verifContainer = document.getElementById('verif-results-container');
+        
+        if (this.files && this.files.length > 0) {
+            selectedFilesVerif = Array.from(this.files);
+            fileStatusVerif.innerText = selectedFilesVerif.length === 1 ? selectedFilesVerif[0].name : `[${selectedFilesVerif.length} FICHIERS ]`;
+            
+            // Miniature du premier fichier
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let htmlContent = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                if (selectedFilesVerif.length > 1) {
+                    htmlContent += `<div style="position: absolute; bottom: 5px; right: 5px; background: var(--text-color); color: var(--bg-color); padding: 2px 6px; font-weight: bold; border: 1px solid var(--bg-color);">+${selectedFilesVerif.length - 1}</div>`;
+                }
+                dropZoneVerif.style.position = "relative";
+                dropZoneVerif.innerHTML = htmlContent;
+                dropZoneVerif.style.border = "none";
+            }
+            reader.readAsDataURL(selectedFilesVerif[0]);
+
+            // --- NOUVEAU : GÉNÉRATION DES BLOCS DE VÉRIFICATION ---
+            if (verifContainer) {
+                verifContainer.innerHTML = ''; // On nettoie les anciens rapports
+                
+                selectedFilesVerif.forEach((file, index) => {
+                    // On crée une div "console-panel" pour chaque fichier
+                    const fileBlock = document.createElement('div');
+                    fileBlock.className = 'console-panel verif-file-block';
+                    
+                    // On y injecte le HTML avec des IDs indexés (0, 1, 2...)
+                    fileBlock.innerHTML = `
+                        <div class="console-header">
+                            <span>// FICHIER : ${file.name}</span>
+                            <span class="verif-result verif-global" id="verif-global-${index}">[ ... ]</span>
+                        </div>
+                        <div class="console-body">
+                            <div class="verif-grid">
+                                <div class="verif-item">
+                                    <span class="verif-label">> Filigrane (Watermark)</span>
+                                    <span class="verif-result" id="res-watermark-${index}">...</span>
+                                </div>
+                                <div class="verif-item">
+                                    <span class="verif-label">> Métadonnées (EXIF)</span>
+                                    <span class="verif-result" id="res-exif-${index}">...</span>
+                                </div>
+                                <div class="verif-item">
+                                    <span class="verif-label">> Stéganographie</span>
+                                    <span class="verif-result" id="res-stegano-${index}">...</span>
+                                </div>
+                                <div class="verif-item">
+                                    <span class="verif-label">> Signature Numérique</span>
+                                    <span class="verif-result" id="res-sign-${index}">...</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    verifContainer.appendChild(fileBlock);
+                });
+            }
+        }
+    });
 
 });
 

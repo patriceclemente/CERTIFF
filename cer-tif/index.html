@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cert.tif</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="icons/icon-amber.png" id="dynamic-favicon">
 </head>
 <body>
     <div class="app-container">
@@ -70,7 +71,7 @@
                             <div class="placeholder-art">
                                 <br>
                                 <p id="depot">[ + ]</p><br>
-                                <input type="file" id="file-upload" accept="image/png, image/jpeg, image/tiff" multiple style="display: none;">
+                                <input type="file" id="file-upload" accept="image/png, image/jpeg, image/jpg, image/tiff" multiple style="display: none;">
                 
                             </div>
                         </div>
@@ -282,6 +283,10 @@
                                 <button id="btn-cancel-verif">[A] Annuler</button>
                             </div>
                         </div>
+                        
+                    </div>
+                    <div id="verif-results-container" style="display: flex; flex-direction: column; gap: 15px;">
+
                     </div>
                 </div>
             </div>

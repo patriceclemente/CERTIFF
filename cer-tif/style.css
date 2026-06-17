@@ -660,3 +660,38 @@ body.theme-grey {
     font-weight: bold;
 }
 
+/* --- Blocs de Vérification Dynamiques --- */
+.verif-file-block {
+    border-top: 1px solid var(--text-color); /* Ligne forte pour séparer les fichiers */
+    background-color: transparent;
+}
+
+.verif-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 colonnes */
+    gap: 15px 30px;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+.verif-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed var(--border-color); /* Ligne pointillée style terminal */
+    padding-bottom: 5px;
+}
+
+.verif-label {
+    opacity: 0.8;
+}
+
+.verif-result {
+    font-weight: bold;
+}
+
+.verif-global{
+    padding: 2px;
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
