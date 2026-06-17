@@ -8,7 +8,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))    # dossier du script
 DB_PATH = os.path.join(BASE_DIR, "DB.db")                # chemin de la base
 STOCKAGE_DIR = os.path.join(BASE_DIR, "stockage")        # dossier des fichiers
-
+STOCKAGE_BRUT_DIR = os.path.join(STOCKAGE_DIR, "brut")  # dossier des images bruts
 #CHEMIN=     # chemin vers les fichier deposer
 
 
@@ -26,6 +26,7 @@ def create_history_table():
             user_id INTEGER NOT NULL,
             nom_fichier TEXT NOT NULL,
             hash_fichier TEXT NOT NULL,
+            extension TEXT NOT NULL,
             date_depot TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             taille INTEGER NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -55,29 +56,27 @@ def create_status_table():
 ######GESTION DES DEPOTS########
 #################################
 
-def enregistrer_depot(user_id, chemin): #chemin doit devenir CHEMIN
-    """Enregistre un dépôt : copie le fichier dans STOCKAGE_DIR et ajoute une ligne en base.
-    Retourne l'id du dépôt créé."""
-    with open(chemin, "rb") as f:
-        contenu = f.read()
+def enregistrer_depot(user_id, nom_fichier, contenu):
+    """Enregistre un dépôt à partir du contenu (octets) et du nom d'origine.
+    Retourne (depot_id, chemin_stockage)."""
     hash_fichier = hashlib.sha256(contenu).hexdigest()
     taille = len(contenu)
     # écrire le fichier dans le dossier de stockage, nommé par son hash
     os.makedirs(STOCKAGE_DIR, exist_ok=True)
-    chemin_stockage = os.path.join(STOCKAGE_DIR, hash_fichier)
+    os.makedirs(STOCKAGE_BRUT_DIR, exist_ok=True)
+    chemin_stockage = os.path.join(STOCKAGE_BRUT_DIR, hash_fichier)
     with open(chemin_stockage, "wb") as f:
         f.write(contenu)
-    # ajouter les infos dans la base
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO depots (user_id, nom_fichier, hash_fichier, taille)
-        VALUES ( ?, ?, ?, ?)
-    """, (user_id, os.path.basename(chemin), hash_fichier, taille))
+        VALUES (?, ?, ?, ?)
+    """, (user_id, nom_fichier, hash_fichier, taille))
     conn.commit()
-    depot_id = cursor.lastrowid     # id du dépôt qu'on vient de créer
+    depot_id = cursor.lastrowid
     conn.close()
-    return depot_id
+    return depot_id, chemin_stockage
 
 def supprimer_depot(depot_id):
     """Supprime un dépôt : efface le fichier du stockage et la ligne en base."""

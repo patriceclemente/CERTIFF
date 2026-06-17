@@ -13,5 +13,6 @@ def init():
     
     print("---Base initialisée---")
 
+
 if __name__ == "__main__":
     init()
