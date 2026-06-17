@@ -97,6 +97,17 @@ def verifier_identifiants(identifiant, mot_de_passe):
         return "non_confirme"  # compte pas encore confirmé par mail
     return "ok"
 
+def get_user_id(identifiant):
+    """Retourne l'user_id à partir de l'email ou du username, ou None."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT user_id FROM users WHERE email = ? OR username = ?",
+        (identifiant, identifiant)
+    )
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
 
 def modifie_mdp(email, nouveau_mdp):
     # générer un nouveau sel
