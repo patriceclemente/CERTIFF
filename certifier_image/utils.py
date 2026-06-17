@@ -59,7 +59,7 @@ def dependencies_for_action(action: str | None = None) -> tuple[list[tuple[str, 
         commands.append(("magick", "imagemagick"))
     elif action in {"exif", "show_exif"}:
         commands.append((resolve_exiftool_bin(), "exiftool"))
-    elif action in {"stegano", "signature", "check_stegano", "check_signature"}:
+    elif action in {"stegano", "check_stegano"}:
         commands.append(("java", "openjdk"))
         needs_openstego = True
     elif action in {"blockchain", "check_blockchain"}:

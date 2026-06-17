@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import state
+from .native import hash_image
 from .utils import (
     ensure_dir,
     explain_source_fallback,
@@ -168,6 +169,12 @@ def run_exif() -> bool:
             f"Date/heure EXIF (YYYY:mm:dd HH:MM:SS) [defaut: {current_date}] : "
         )
         state.EXIF_DATE = value or current_date
+
+        value = input(f"Nom de l'artiste [defaut: {state.EXIF_ARTIST}] : ")
+        state.EXIF_ARTIST = value or state.EXIF_ARTIST
+
+        value = input(f"Copyright [defaut: {state.EXIF_COPYRIGHT}] : ")
+        state.EXIF_COPYRIGHT = value or state.EXIF_COPYRIGHT
     else:
         state.EXIF_DATE = state.EXIF_CUSTOM_DATE or current_date
 
@@ -180,9 +187,9 @@ def run_exif() -> bool:
                 f"-DateTimeOriginal={state.EXIF_DATE}",
                 f"-CreateDate={state.EXIF_DATE}",
                 f"-ImageUniqueID={state.EXIF_DATE}:001",
-                "-Creator=\u00a9 Cert-Art.fr",
-                "-Artist=\u00a9 Cert-Art.fr",
-                "-Copyright=\u00a9 Cert-Art.fr",
+                f"-Creator={state.EXIF_ARTIST}",
+                f"-Artist={state.EXIF_ARTIST}",
+                f"-Copyright={state.EXIF_COPYRIGHT}",
                 str(state.FILE_WM_EXIF),
             ]
         )
@@ -270,62 +277,19 @@ def run_signature() -> bool:
     explain_source_fallback("Signature", carrier_file, state.FILE_WM_INVISIBLE)
 
     ensure_dir(state.SIG_FILE.parent)
-    if not Path(state.SIG_FILE).is_file():
-        sig_pwd = f"{state.IMG_BASE}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        print(f"[INFO] Mot de passe genere automatiquement : {sig_pwd}")
-
-        if state.MODE_INTERACTIVE:
-            want_pwd = input("Voulez-vous saisir un mot de passe personnalise ? (y/n) [n] : ") or "n"
-            if want_pwd.lower() == "y":
-                sig_pwd = getpass.getpass("Entrer mot de passe : ")
-                sig_pwd2 = getpass.getpass("Confirmer mot de passe : ")
-                if sig_pwd != sig_pwd2:
-                    print("[ERROR] Les mots de passe ne correspondent pas")
-                    return False
-
-        try:
-            run_command(
-                ["java", "-jar", str(state.OPENSTEGO_JAR), "gensig", "-gf", str(state.SIG_FILE)],
-                input=f"{sig_pwd}\n{sig_pwd}\n",
-                text=True,
-            )
-        except FileNotFoundError:
-            print("[ERROR] java est introuvable")
-            return False
-        except subprocess.CalledProcessError as error:
-            print(f"[ERROR] Echec OpenStego gensig : {error}")
-            return False
-
-        if not Path(state.SIG_FILE).is_file():
-            print(f"[ERROR] La signature n'a pas ete creee : {state.SIG_FILE}")
-            return False
-        print(f"[OK] Fichier de signature cree : {state.SIG_FILE}")
-    else:
-        print(f"[INFO] Fichier de signature deja present : {state.SIG_FILE}")
-
     try:
-        run_command(
-            [
-                "java",
-                "-jar",
-                str(state.OPENSTEGO_JAR),
-                "embedmark",
-                "-gf",
-                str(state.SIG_FILE),
-                "-cf",
-                str(carrier_file),
-                "-sf",
-                str(state.FILE_NUM_SIGNED),
-            ]
-        )
-    except FileNotFoundError:
-        print("[ERROR] java est introuvable")
+        signature = hash_image(str(carrier_file)).hex()
+        Path(state.SIG_FILE).write_text(signature, encoding="utf-8")
+        shutil.copy2(carrier_file, state.FILE_NUM_SIGNED)
+    except OSError as error:
+        print(f"[ERROR] Impossible de creer la signature : {error}")
         return False
-    except subprocess.CalledProcessError as error:
-        print(f"[ERROR] Echec OpenStego embedmark : {error}")
+    except Exception as error:
+        print(f"[ERROR] Echec du hash de signature : {error}")
         return False
 
-    print(f"[OK] Signature appliquee sur {state.FILE_NUM_SIGNED}")
+    print(f"[OK] Signature SHA-256 creee : {state.SIG_FILE}")
+    print(f"[OK] Image reference pour blockchain : {state.FILE_NUM_SIGNED}")
     return True
 
 
@@ -396,29 +360,29 @@ def check_stegano() -> bool:
 def check_signature() -> bool:
     print("=== Verification de la signature numerique ===")
     if not Path(state.FILE_NUM_SIGNED).is_file():
-        print("[INFO] Tatouage numerique : aucune info")
+        print("[INFO] Image signee introuvable")
+        return False
+    if not Path(state.SIG_FILE).is_file():
+        print("[INFO] Fichier de signature introuvable")
         return False
 
     try:
-        run_command(
-            [
-                "java",
-                "-jar",
-                str(state.OPENSTEGO_JAR),
-                "checkmark",
-                "-gf",
-                str(state.SIG_FILE),
-                "-sf",
-                str(state.FILE_NUM_SIGNED),
-            ]
-        )
-    except FileNotFoundError:
-        print("[ERROR] java est introuvable")
+        expected_signature = Path(state.SIG_FILE).read_text(encoding="utf-8").strip()
+        actual_signature = hash_image(str(state.FILE_NUM_SIGNED)).hex()
+    except OSError as error:
+        print(f"[ERROR] Impossible de lire la signature : {error}")
         return False
-    except subprocess.CalledProcessError as error:
-        print(f"[ERROR] Echec OpenStego checkmark : {error}")
+    except Exception as error:
+        print(f"[ERROR] Verification de signature impossible : {error}")
         return False
 
+    if actual_signature != expected_signature:
+        print("[ERROR] Signature invalide")
+        print(f"  attendu : {expected_signature}")
+        print(f"  obtenu  : {actual_signature}")
+        return False
+
+    print("[OK] Signature valide")
     return True
 
 

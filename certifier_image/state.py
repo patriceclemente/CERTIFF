@@ -55,6 +55,8 @@ FILE_NUM_SIGNED = None
 SIG_FILE = None
 
 EXIF_DATE = None
+EXIF_ARTIST = "\u00a9 Cert-Art.fr"
+EXIF_COPYRIGHT = "\u00a9 Cert-Art.fr"
 
 KNOWN_ACTIONS = {
     "visible",
