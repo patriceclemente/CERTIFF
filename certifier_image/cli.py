@@ -11,7 +11,7 @@ from .utils import check_dependencies
 
 
 def usage() -> None:
-    print("Usage: python page_python.py [options] [action] base_dir image.png [exif_date]")
+    print("Usage: python run.py [options] [action] base_dir image1.png [image2.png ...] [exif_date]")
     print("Actions : visible, exif, stegano, signature, blockchain,")
     print("          check_stegano, check_signature, check_blockchain, show_exif, report, pipeline")
     print("Options :")
@@ -27,6 +27,10 @@ def usage() -> None:
     print('  --wm-font "NomPolice"')
     print('  --stegano-message "texte"')
     print("  --check")
+
+
+def looks_like_exif_date(value: str) -> bool:
+    return ":" in value and not Path(value).is_file()
 
 
 def parse_pipeline_args(argv: list[str]) -> argparse.Namespace:
@@ -87,18 +91,39 @@ def configure_from_args(args: argparse.Namespace) -> bool:
 
     if len(items) == 1:
         state.BASE_DIR = Path(".")
-        state.INPUT_IMG = Path(items[0])
+        state.INPUT_IMGS = [Path(items[0])]
         state.EXIF_CUSTOM_DATE = None
     elif len(items) >= 2:
         state.BASE_DIR = Path(items[0])
-        state.INPUT_IMG = Path(items[1])
-        state.EXIF_CUSTOM_DATE = items[2] if len(items) >= 3 else None
+        image_items = items[1:]
+        if len(image_items) >= 2 and looks_like_exif_date(image_items[-1]):
+            state.EXIF_CUSTOM_DATE = image_items.pop()
+        else:
+            state.EXIF_CUSTOM_DATE = None
+
+        state.INPUT_IMGS = [Path(item) for item in image_items]
+        if not state.INPUT_IMGS:
+            usage()
+            return False
     else:
         usage()
         return False
 
+    state.INPUT_IMG = state.INPUT_IMGS[0]
     return True
 
+
+def run_for_current_image() -> bool:
+    if not prepare_pipeline():
+        return False
+
+    if not check_dependencies(state.ACTION):
+        return False
+
+    if state.MODE_INTERACTIVE and state.ACTION == "pipeline":
+        return run_interactive_flow()
+
+    return run_action()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -114,14 +139,12 @@ def main(argv: list[str] | None = None) -> int:
     if not configured:
         return 1
 
-    if not prepare_pipeline():
-        return 1
+    ok = True
+    for index, image in enumerate(state.INPUT_IMGS, start=1):
+        state.INPUT_IMG = image
+        if len(state.INPUT_IMGS) > 1:
+            print()
+            print(f"=== Image {index}/{len(state.INPUT_IMGS)} : {image} ===")
+        ok = run_for_current_image() and ok
 
-    if not check_dependencies(state.ACTION):
-        return 1
-
-    if state.MODE_INTERACTIVE and state.ACTION == "pipeline":
-        ok = run_interactive_flow()
-    else:
-        ok = run_action()
     return 0 if ok else 1
