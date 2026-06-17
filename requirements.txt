@@ -1,2 +1,6 @@
 Pillow
 pycryptodome
+
+Flask 
+Itsdangerous
+python-dotenv
