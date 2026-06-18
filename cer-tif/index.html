@@ -22,7 +22,7 @@
                 <a href="#" class="nav-item">Stegano Invis.</a>
                 <a href="#" class="nav-item">Signature Num.</a>
                 <a href="#" class="nav-item">Blockchain OTS</a-->
-                <!--a href="#" class="nav-item">Métadonnées EXIF</a-->
+                <a href="#" class="nav-item">Métadonnées EXIF</a>
                 <a href="#" class="nav-item">Historique</a>
             </nav>
 
@@ -40,12 +40,15 @@
 
                     </div>
                 </div>
-                <div class="os-info">Cert.tif v1.0.0</div>
                 <div class="sys-icons">
+<<<<<<< HEAD
+                    <span class="btn-icons" id="btn-settings">⚙</span> <span class="btn-icons" id="btn-logout">[→</span>
+=======
                     
                     <button id="btn-settings" class="icon-btn">⚙</button>
                     <button id="btn-login" class="icon-btn">⚿</button>
                     <button id="btn-logout" class="icon-btn">[→</button>
+>>>>>>> cbe4917e696ff98576a8a34b4b5de54a0008a5ff
                     <div id="theme-menu" style="display: none;">
                         <p>//THEMES_</p>
                         <button class="theme-btn" data-theme="theme-default">> Ambre/Noir (Défaut)</button>
@@ -238,7 +241,6 @@
                             </div>
 
                             <div id="console-sign" style="display:none">
-                                <button class="tag" id="btn-signer" type="button">[⚿] Stocker la signature</button>
                                 <form class="form-data" id="form-sign-data">
                                     <label for="sign-mdp" style="opacity:0.8">//Entrez le mot de passe stegano: </label>
                                     <div class="input-line mirror-container">
@@ -246,6 +248,7 @@
                                         <span id="sign-mdp-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
                                         <input type="text" id="sign-mdp" class="hidden-terminal-input" autocomplete="off">
                                     </div>
+                                    <button class="tag" id="btn-signer" type="button">[⚿] Signature</button>
                                 </form>
                             </div>
 
@@ -287,9 +290,9 @@
                             </div>
                         </div>
                     </div>
-                    <div id="exif-action-container" style="display: none; margin-bottom: 15px;">
+                    <!--div id="exif-action-container" style="display: none; margin-bottom: 15px;">
                         <button id="btn-export-exif">[↓] Extraire les métadonnées EXIF</button>
-                    </div>
+                    </div-->
                     <div id="verif-results-container" style="display: flex; flex-direction: column; gap: 15px;">
 
                     </div>
@@ -304,10 +307,11 @@
     </div>
 
     <footer class="shortcuts-bar">
-        <span>[⌘K] Commandes</span>
+        <span class="os-info">Cert.tif v1.0.0</span>
+        <!--span>[⌘K] Commandes</span>
         <span>[↑/↓] Naviguer</span>
         <span>[ESC] Fermer</span>
-        <span>[TAB] Sélectionner</span>
+        <span>[TAB] Sélectionner</span-->
         <span class="credit">@projet-app-3A</span>
     </footer>
 
