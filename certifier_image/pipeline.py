@@ -503,18 +503,25 @@ def show_exif() -> bool:
         return False
     explain_source_fallback("Affichage EXIF", target_file, state.FILE_WM_EXIF)
     try:
-        run_command(
+        result = run_command(
             [
                 resolve_exiftool_bin(),
-                "-FileName",
-                "-FileSize",
-                "-FileCreateDate",
-                "-FileTypeExtension",
+                "-FileType",
+                "-MIMEType",
+                "-ImageWidth",
+                "-ImageHeight",
+                "-ImageSize",
+                "-DateTimeOriginal",
+                "-CreateDate",
+                "-ModifyDate",
                 "-Creator",
                 "-Artist",
                 "-Copyright",
+                "-ImageUniqueID",
                 str(target_file),
-            ]
+            ],
+            capture_output=True,
+            text=True,
         )
     except FileNotFoundError:
         print("[ERROR] exiftool est introuvable")
@@ -522,6 +529,13 @@ def show_exif() -> bool:
     except subprocess.CalledProcessError as error:
         print(f"[ERROR] Echec exiftool : {error}")
         return False
+
+    output = result.stdout.strip()
+    if output:
+        print(output)
+    else:
+        print("[INFO] Aucune metadonnee EXIF utile trouvee")
+
     return True
 
 

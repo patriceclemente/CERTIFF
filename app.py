@@ -3,6 +3,7 @@ import sys
 import io
 import base64
 import importlib
+import re
 from pathlib import Path
 
 from flask import Flask, request, jsonify, url_for, session
@@ -31,6 +32,118 @@ app.secret_key = os.environ["SECRET_KEY"]
 # --- config pour la partie certification d'image ---
 
 PACKAGE_NAME = "certifier_image"
+ARTIFACT_FIELDS = (
+    "INPUT_IMG_PATH",
+    "FILE_WM_VISIBLE",
+    "FILE_WM_EXIF",
+    "FILE_WM_INVISIBLE",
+    "FILE_NUM_SIGNED",
+    "SIG_FILE",
+    "WM_SIGNATURE_SUBDIR",
+)
+
+
+def sanitize_terminal_logs(lines):
+    """Remove internal filesystem paths before sending logs to the browser."""
+    sanitized = []
+    path_pattern = re.compile(
+        r'([A-Za-z]:\\[^\s"]+|(?:DB\\stockage|images_brutes|watermark-[^\s\\]+|raw_uploads|uploads)[^\s"]*)'
+    )
+    long_hash_pattern = re.compile(r"\b[a-fA-F0-9]{32,}\b")
+
+    for line in lines:
+        public_line = path_pattern.sub("[fichier]", line)
+        public_line = long_hash_pattern.sub("[id-fichier]", public_line)
+        public_line = public_line.replace(" comme entree", "")
+
+        if public_line.strip().startswith("DEBUG:"):
+            continue
+        if "INPUT_IMG_PATH" in public_line:
+            continue
+        if "source :" in public_line or "dest   :" in public_line:
+            continue
+        if public_line.startswith("       "):
+            continue
+
+        sanitized.append(public_line)
+
+    return sanitized
+
+
+def project_relative_path(path):
+    if not path:
+        return None
+
+    base_path = Path(BASE_DIR).resolve()
+    resolved = Path(path).resolve()
+    try:
+        return str(resolved.relative_to(base_path))
+    except ValueError:
+        return None
+
+
+def project_path(relative_path):
+    if not relative_path:
+        return None
+
+    base_path = Path(BASE_DIR).resolve()
+    resolved = (base_path / relative_path).resolve()
+    try:
+        resolved.relative_to(base_path)
+    except ValueError:
+        return None
+    return resolved
+
+
+def store_certification_artifacts(state_module):
+    artifacts = {}
+    for field in ARTIFACT_FIELDS:
+        value = getattr(state_module, field, None)
+        if not value or not Path(value).exists():
+            continue
+        relative = project_relative_path(value)
+        if relative:
+            artifacts[field] = relative
+
+    if artifacts:
+        session["certification_artifacts"] = artifacts
+
+
+def restore_certification_artifacts(state_module):
+    artifacts = session.get("certification_artifacts") or {}
+    restored = False
+
+    for field, relative in artifacts.items():
+        if field not in ARTIFACT_FIELDS:
+            continue
+        path = project_path(relative)
+        if path:
+            setattr(state_module, field, path)
+            restored = True
+
+    return restored
+
+
+def run_report_with_saved_artifacts(chemin_stockage):
+    state_module = importlib.import_module("certifier_image.state")
+    pipeline_module = importlib.import_module("certifier_image.pipeline")
+    utils_module = importlib.import_module("certifier_image.utils")
+
+    restored = restore_certification_artifacts(state_module)
+    if not restored:
+        state_module.INPUT_IMG_PATH = Path(chemin_stockage)
+
+    old_stdout = sys.stdout
+    captured_output = io.StringIO()
+    sys.stdout = captured_output
+    try:
+        deps_ok = utils_module.check_dependencies("report")
+        if deps_ok:
+            pipeline_module.report_final()
+    finally:
+        sys.stdout = old_stdout
+
+    return captured_output.getvalue().splitlines()
 
 
 # =========================================================
@@ -230,6 +343,18 @@ def handle_api():
 
         # appelle du module cli.py dynamiquement
         cli_module = importlib.import_module("certifier_image.cli")
+        state_module = importlib.import_module("certifier_image.state")
+
+        if action == "report":
+            terminal_logs = run_report_with_saved_artifacts(chemin_stockage)
+            public_terminal_logs = sanitize_terminal_logs(terminal_logs)
+            return jsonify({
+                "status": "success",
+                "action_executed": action,
+                "depot_id": depot_id,
+                "image_base64": None,
+                "terminal_output": public_terminal_logs
+            })
 
         # on capture les print() pour qu'ils s'affichent à l'écran
         old_stdout = sys.stdout
@@ -242,12 +367,16 @@ def handle_api():
         # on restaure le terminal normal et on récupère les logs
         sys.stdout = old_stdout
         terminal_logs = captured_output.getvalue().splitlines()
+        public_terminal_logs = sanitize_terminal_logs(terminal_logs)
 
-        if return_code != 0:
+        if return_code == 0:
+            store_certification_artifacts(state_module)
+
+        if return_code != 0 and action != "report":
             return jsonify({
                 "status": "error",
                 "message": "Le traitement de l'image a échoué",
-                "terminal_output": terminal_logs
+                "terminal_output": public_terminal_logs
             }), 500
 
         # localisation de l'image créée par le python
@@ -286,7 +415,7 @@ def handle_api():
             "action_executed": action,
             "depot_id": depot_id,
             "image_base64": base64_image,
-            "terminal_output": terminal_logs
+            "terminal_output": public_terminal_logs
         })
 
     except Exception as e:

@@ -41,12 +41,22 @@ def resolve_exiftool_bin() -> str:
 
 
 def dependencies_for_action(action: str | None = None) -> tuple[list[tuple[str, str]], bool]:
-    if action is None or action in {"pipeline", "report"}:
+    if action is None or action == "pipeline":
         return (
             [
                 (resolve_exiftool_bin(), "exiftool"),
                 ("java", "openjdk"),
                 (state.OTS_BIN, "opentimestamps-client"),
+                ("magick", "imagemagick"),
+            ],
+            True,
+        )
+
+    if action == "report":
+        return (
+            [
+                (resolve_exiftool_bin(), "exiftool"),
+                ("java", "openjdk"),
                 ("magick", "imagemagick"),
             ],
             True,
