@@ -42,7 +42,7 @@ def accueil():
     return app.send_static_file("login.html")
 
 # =========================================================
-#  API — INFO SESSION
+#  INFO SESSION
 # =========================================================
 @app.route("/api/me")
 def me():
@@ -55,6 +55,30 @@ def me():
         return jsonify({"ok": False, "message": "Utilisateur introuvable"}), 404
 
     return jsonify({"ok": True, "username": username})
+
+# =========================================================
+#  HISTORIQUE
+# =========================================================
+
+@app.route("/api/historique")
+def historique():
+    user_id = session.get("user_id")
+    if user_id is None:
+        return jsonify({"ok": False, "message": "Connect toi petit malin"}), 401
+
+    depots_bruts = depots.lister_depots(user_id)   # liste de tuples
+
+    # on transforme chaque tuple en dictionnaire (plus clair côté JS)
+    depots_liste = []
+    for d in depots_bruts:
+        depots_liste.append({
+            "nom_fichier": d[0],
+            "hash_fichier": d[1],
+            "date_depot": d[2],
+            "taille": d[3]
+        })
+
+    return jsonify({"ok": True, "depots": depots_liste})
 
 # =========================================================
 #  API — AUTHENTIFICATION (partie login/signup)

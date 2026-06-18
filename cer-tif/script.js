@@ -24,7 +24,48 @@ function griser(btn) {
     btn.style.opacity = '0.4';   
     btn.style.pointerEvents = 'none'; 
 }
+function chargerHistorique() {
+    const container = document.getElementById('historique-container');
+    container.innerHTML = '> Chargement...';
 
+    fetch('/api/historique')
+        .then(r => r.json())
+        .then(data => {
+            if (!data.ok) {
+                container.innerHTML = '> Connecte-toi pour voir ton historique.';
+                return;
+            }
+            if (data.depots.length === 0) {
+                container.innerHTML = '> Aucun dépôt pour le moment.';
+                return;
+            }
+
+            container.innerHTML = '';
+            data.depots.forEach(depot => {
+                // taille en Ko, arrondie
+                const tailleKo = (depot.taille / 1024).toFixed(1);
+
+                const ligne = document.createElement('div');
+                ligne.className = 'console-panel';
+                ligne.style.marginBottom = '10px';
+                ligne.innerHTML = `
+                    <div class="console-header">
+                        <span>// ${depot.nom_fichier}</span>
+                        <span>${depot.date_depot}</span>
+                    </div>
+                    <div style="padding-top:8px; opacity:0.8;">
+                        > Taille : ${tailleKo} Ko<br>
+                        > Hash : ${depot.hash_fichier.substring(0, 16)}...
+                    </div>
+                `;
+                container.appendChild(ligne);
+            });
+        })
+        .catch(err => {
+            container.innerHTML = '> Erreur de chargement.';
+            console.error('Erreur historique :', err);
+        });
+}
 document.addEventListener('DOMContentLoaded', () => {
     
     // Déconnexion 
@@ -67,14 +108,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const panelCertif = document.getElementById('panel-certification');
             const panelVerif = document.getElementById('panel-verification');
+            const panelHisto = document.getElementById('panel-historique');
             const targetMenu = e.target.innerText.trim();
 
             if (targetMenu === "Vérification") {
                 if(panelCertif) panelCertif.style.display = "none";
                 if(panelVerif) panelVerif.style.display = "block";
+                if(panelHisto) panelHisto.style.display = "none";
             } else if (targetMenu === "Certification") {
                 if(panelVerif) panelVerif.style.display = "none";
                 if(panelCertif) panelCertif.style.display = "block";
+                if(panelHisto) panelHisto.style.display = "none";
+            } else if (targetMenu === "Historique") {
+                if(panelCertif) panelCertif.style.display = "none";
+                if(panelVerif) panelVerif.style.display = "none";
+                if(panelHisto) panelHisto.style.display = "block";
+                chargerHistorique();
             }
         });
     });
