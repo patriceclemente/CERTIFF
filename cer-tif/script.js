@@ -94,6 +94,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 usernameDiv.innerText = chars.join('');
             }, 60);   // rythme (ms)
+
+
+            
+           // INVITÉ : masquer l'onglet Vérification et Historique (sidebar) 
+           //a securisé quand on connectera l'api avec les fonctionnalités bloquées
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if (item.innerText.trim() === 'Vérification') {
+                    item.style.opacity = '0.4';
+                    item.style.pointerEvents = 'none';  
+                }
+            });
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if (item.innerText.trim() === 'Historique') {
+                    item.style.opacity = '0.4';
+                    item.style.pointerEvents = 'none';  
+
+                }
+            });
+
+            //  masquer l'onglet Blockchain OTS 
+            document.querySelectorAll('.tab').forEach(tab => {
+                if (tab.innerText.trim() === 'Blockchain OTS') {
+                    tab.style.opacity = '0.4';
+                    tab.style.pointerEvents = 'none';   
+  
+                }
+            });
         }
     })
     .catch(err => {
