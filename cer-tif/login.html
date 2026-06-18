@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cert.tif | Noeud d'accès</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+    <div class="login-wrapper">
+        <div class="login-box">
+            <div class="login-header">
+                <span class="logo-text">CЄЯ.TΨF // ACCESS</span>
+                <span class="lock-icon">⚿</span>
+            </div>
+            
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="identifiant">> USERNAME / E-MAIL_</label>
+                    <input type="text" id="identifiant" autocomplete="off" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">> PASSWORD_</label>
+                    <input type="password" id="password" required>
+                </div>
+                
+                <div class="login-actions">
+                    <button type="submit" id="btn-login">[↵] S'AUTHENTIFIER</button>
+                </div>
+            </form>
+            
+            <div class="login-status" id="login-status"></div>
+ 
+            <div style="margin-top:20px;border-top:1px dashed var(--border-color);padding-top:15px;font-size:0.85rem;">
+                > PAS DE COMPTE ?
+            </div>
+                <a href="signup.html" style="color:var(--text-color);">[CRÉER UN COMPTE]</a>
+            
+                <a href="index.html" style="color:var(--text-color);">[CONTINUER SANS COMPTE]</a>
+            </div>
+        </div>
+    </div>
+ 
+    <script src="login.js"></script>
+</body>
+</html>

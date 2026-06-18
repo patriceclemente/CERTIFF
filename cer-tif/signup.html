@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cert.tif | Création de nœud</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+    <div class="login-wrapper">
+        <div class="login-box">
+            <div class="login-header">
+                <span class="logo-text">CЄЯ.TΨF // REGISTER</span>
+                <span class="lock-icon">⚿</span>
+            </div>
+
+            <form id="signup-form">
+                <div class="input-group">
+                    <label for="username">> USERNAME_</label>
+                    <input type="text" id="username" autocomplete="off" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="email">> E-MAIL_</label>
+                    <input type="email" id="email" autocomplete="off" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">> PASSWORD_</label>
+                    <input type="password" id="password" required>
+                </div>
+
+                <div class="login-actions">
+                    <button type="submit" id="btn-signup">[↵] CRÉER LE COMPTE</button>
+                </div>
+            </form>
+
+            <div class="login-status" id="signup-status"></div>
+
+            <div style="margin-top:20px;border-top:1px dashed var(--border-color);padding-top:15px;font-size:0.85rem;">
+                > COMPTE EXISTANT ?
+                <a href="login.html" style="color:var(--text-color);">[ SE CONNECTER ]</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="signup.js"></script>
+</body>
+</html>

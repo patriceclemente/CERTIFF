@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cert.tif</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="icons/icon-amber.png" id="dynamic-favicon">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>CЄЯ.TΨF</h1>
+                <span class="icon">◳</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active">Certification</a>
+                <a href="#" class="nav-item">Vérification</a>
+                <!--a href="#" class="nav-item">Watermark Vis.</a>
+                <a href="#" class="nav-item">Stegano Invis.</a>
+                <a href="#" class="nav-item">Signature Num.</a>
+                <a href="#" class="nav-item">Blockchain OTS</a-->
+                <a href="#" class="nav-item">Métadonnées EXIF</a>
+                <a href="#" class="nav-item">Historique</a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="user-info">
+                    <div>
+
+                        <!-- -->
+                        <div><span></span> User : <span id="username"></span></div>
+                        <!-- -->
+
+                        <!-- proposition pour encore plus de terminal looks maxing-->
+                        <!--<div><span></span> Ψ:\Users\<span id="username"></span></div>-->
+
+
+                    </div>
+                </div>
+                <div class="sys-icons">
+                    
+                    <button id="btn-settings" class="icon-btn">⚙</button>
+                    <button id="btn-login" class="icon-btn">⚿</button>
+                    <button id="btn-logout" class="icon-btn">[→</button>
+                    <div id="theme-menu" style="display: none;">
+                        <p>//THEMES_</p>
+                        <button class="theme-btn" data-theme="theme-default">> Ambre/Noir (Défaut)</button>
+                        <button class="theme-btn" data-theme="theme-blue">> Cyan/Bleu Nuit</button>
+                        <button class="theme-btn" data-theme="theme-beige">> Gris Foncé/Beige</button>
+                        <button class="theme-btn" data-theme="theme-grey">> Gris/Carbone</button>
+                    
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="window-controls">
+                    <span class="dot close"></span>
+                    <span class="dot min"></span>
+                    <span class="dot max"></span>
+                </div>
+                <div class="address-bar">
+                    <span class="globe"></span> 
+                </div>
+                <div class="actions">
+                    <span>[↑]</span> <span>[+]</span> <span>[⎕]</span>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div id="panel-certification">
+                    <h2 class="section-title">PIPELINE DE CERTIFICATION</h2>
+                    
+                    <div class="info-panel">
+                        <div class="image-preview">
+                            <div class="placeholder-art">
+                                <br>
+                                <p id="depot_certif">[ + ]</p><br>
+                                <input type="file" id="file-upload" accept="image/png, image/jpeg, image/jpg, image/tiff" multiple style="display: none;">
+                
+                            </div>
+                        </div>
+                        <div class="info-content">
+                            <div class="details">
+                                <h3>Fichier : <span class="highlight">en attente...</span></h3>
+                                <br>
+                                <p>Glisser déposer l'image dans la zone ou importer depuis vos fichiers.</p>
+                            </div>
+                            <div class="panel-actions">
+                                <button id="btn-import">[I] Importer</button>
+                                <button id="btn-cancel">[A] Annuler</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tabs">
+                        <!--a href="#" class="tab active">Certif complète</a-->
+                        <a href="#" class="tab">Watermark</a>
+                        <a href="#" class="tab">EXIF</a>
+                        <a href="#" class="tab"> Stegano</a>
+                        <a href="#" class="tab"> Signature Num.</a>
+                        <a href="#" class="tab"> Blockchain OTS</a>
+                    </div>
+                    <div>
+                        
+                    </div>
+                    <div class="console-panel">
+                        <div class="console-header">
+                            <span></span>
+                        </div>
+                        <div class="console-body">
+                            <ul class="log-list"></ul>
+    
+                            <div id="console-watermark" style="display: none;">
+                                <div class="form-group">
+                                    <form class="form-data">
+                                        <label for="watermark-message">//Message filigrane : </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-msg-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="watermark-msg" class="hidden-terminal-input" autocomplete="off" required maxlength="100">
+                                        </div>
+
+                                        <label for="watermark-taillep">//Taille de la police (en px) [↑/↓]: </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-taillep-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="number" id="watermark-taillep" class="hidden-terminal-input" autocomplete="off" required min="1" max="100">
+                                        </div>
+                                        
+                                        <label for="watermark-couleur">//Couleur du texte R,G,B: </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-couleur-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="watermark-couleur" class="hidden-terminal-input" autocomplete="off" required pattern="^\d{1,3},\d{1,3},\d{1,3}$" title="Format requis : R,G,B (ex: 128,128,128)">
+                                        </div>
+
+                                        <label for="watermark-opacite">//Opacité (0 à 1) [↑/↓]: </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-opacite-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="number" id="watermark-opacite" class="hidden-terminal-input" autocomplete="off" required min="0" max="1" step="0.1">
+                                        </div>
+
+                                        <label for="watermark-angle">//Angle d'inclinaison [↑/↓]: </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-angle-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="number" id="watermark-angle" class="hidden-terminal-input" autocomplete="off" required min="-360" max="360">
+                                        </div>
+
+                                        <label for="watermark-espace">//Espacement (px) [↑/↓]: </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="watermark-espace-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="number" id="watermark-espace" class="hidden-terminal-input" autocomplete="off" required min="10" max="1000">
+                                        </div>
+                                    </form>
+                                    <div class="default">
+                                        <p>//Default settings : </p>
+                                        <ul>
+                                            <li>©cert-art.fr</li>
+                                            <li>35</li>
+                                            <li>128,128,128</li>
+                                            <li>0.2</li>
+                                            <li>-45</li>
+                                            <li>300</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="console-stegano" style="display:none">
+                                <div class="form-group">
+                                    <form class="form-data">
+                                        <label for="stegano-msg">//Message à dissimuler: </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="stegano-msg-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="stegano-msg" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+
+                                        <label for="stegano-mdp">//Mot de passe image: </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="stegano-mdp-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="stegano-mdp" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+                                    </form>
+                                    <div class="default">
+                                        <p>//Default settings : </p>
+                                        <ul>
+                                            <li>defaut</li>
+                                            <li>defaut</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="console-exif" style="display:none">
+                                <div class="form-group">
+                                    <form class="form-data">
+                                        <label for="exif-auteur">//Nom d'artise - Auteur </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="exif-auteur-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="exif-auteur" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+
+                                        <label for="exif-copy">//Copyright (si pas de spécification : auteur): </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="exif-copy-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="exif-copy" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+
+                                        <label for="exif-date">//Date (YYYY:mm:dd HH:MM:SS): </label>
+                                        <div class="input-line mirror-container">
+                                            <span class="terminal-prompt">> </span>
+                                            <span id="exif-date-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                            <input type="text" id="exif-date" class="hidden-terminal-input" autocomplete="off">
+                                        </div>
+                                    </form>
+                                    <div class="default">
+                                        <p>//Default settings : </p>
+                                        <ul>
+                                            <li>© Cert-Art.fr</li>
+                                            <li>© Cert-Art.fr</li>
+                                            <li>Date actuelle</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="console-sign" style="display:none">
+                                <form class="form-data" id="form-sign-data">
+                                    <label for="sign-mdp" style="opacity:0.8">//Entrez le mot de passe stegano: </label>
+                                    <div class="input-line mirror-container">
+                                        <span class="terminal-prompt">> </span>
+                                        <span id="sign-mdp-mirror" class="terminal-mirror"></span><span class="prompt">_</span>
+                                        <input type="text" id="sign-mdp" class="hidden-terminal-input" autocomplete="off">
+                                    </div>
+                                    <button class="tag" id="btn-signer" type="button">[⚿] Signature</button>
+                                </form>
+                            </div>
+
+                            <div id="console-block" style="display:none">
+                                <p id="notif">Vous seriez notifié par mail lorsque le l'envoie sera terminé.</p>
+                            </div>
+                            <div class="console-tags" id="action-buttons" style="display:none;">
+                                <button class="tag">[E] Exporter</button>
+                                <button class="tag" id="btn-next">[N] Next </button>
+                            </div>
+                            <!--div class="send-blockchain" style="display:none">
+                                <button class="tag">[+] Envoyer sur la Blockchain </button>
+                            </div-->
+                        </div>
+                        <div class="console-footer">
+                            <span>[↵] Exécuter</span> 
+                        </div>
+                    </div>
+                </div>
+                <div id="panel-verification" style="display: none;">
+                    <h2 class="section-title">MODULE DE VÉRIFICATION</h2>
+                    <div class="info-panel">
+                        <div class="image-preview" id="drop-zone-verif">
+                            <div class="placeholder-art">
+                                <br>
+                                <p id="depot_verif">[ ? ]</p><br>
+                                <input type="file" id="file-upload-verif" accept="image/png, image/jpeg, image/tiff"y multiple style="display: none;">
+                            </div>
+                        </div>
+                        <div class="info-content">
+                            <div class="details">
+                                <h3>Analyse : <span class="highlight" id="file-status-verif">en attente...</span></h3>
+                                <br>
+                                <p>Glisser déposer l'image dans la zone ou importer depuis vos fichiers.</p>
+                            </div>
+                            <div class="panel-actions">
+                                <button id="btn-import-verif">[I] Importer</button>
+                                <button id="btn-cancel-verif">[A] Annuler</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!--div id="exif-action-container" style="display: none; margin-bottom: 15px;">
+                        <button id="btn-export-exif">[↓] Extraire les métadonnées EXIF</button>
+                    </div-->
+                    <div id="verif-results-container" style="display: flex; flex-direction: column; gap: 15px;">
+
+                    </div>
+                </div>
+                <div id="panel-historique" style="display: none;">
+                    <h2 class="section-title">HISTORIQUE DES DÉPÔTS</h2>
+                    
+                    <div id="historique-container" class="histo-grid"></div>
+
+                    <div id="histo-modal" style="display: none;">
+                        <div class="console-panel histo-modal-content">
+                            <div class="console-header">
+                                <span id="modal-filename">// FICHIER_</span>
+                                <button id="modal-close" class="tag">[X] Fermer</button>
+                            </div>
+                            <div class="console-body" style="display: flex; gap: 20px; margin-top: 15px;">
+                                <div class="image-preview" style="width: 200px; height: 200px; border: 1px dashed var(--border-color);">
+                                    <img id="modal-img" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div id="modal-details" class="default" style="flex: 1; border: none; padding: 0;">
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="shortcuts-bar">
+        <span class="os-info">Cert.tif v1.0.0</span>
+        <!--span>[⌘K] Commandes</span>
+        <span>[↑/↓] Naviguer</span>
+        <span>[ESC] Fermer</span>
+        <span>[TAB] Sélectionner</span-->
+        <span class="credit">@projet-app-3A</span>
+    </footer>
+
+    <script src="script-api.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

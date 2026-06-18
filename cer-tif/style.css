@@ -1,0 +1,814 @@
+:root {
+    --bg-color: #050505; /* Noir très profond */
+    --panel-bg: #0a0a0a;
+    --text-color: #ff9900; /* Ambre / Orange rétro */
+    --border-color: #ff9900;
+    /*--text-color: #d5d0c8; 
+    --border-color: #d5d0c8;*/
+    --highlight-bg: #ff9900;
+    --font-mono: 'Courier New', Courier, monospace;
+}
+
+/* =========================================
+   PAGE DE CONNEXION (login.html)
+   ========================================= */
+
+.login-body {
+    justify-content: center;
+    align-items: center;
+    background-color: var(--bg-color); /* Assure que le fond reste noir */
+}
+
+.login-wrapper {
+    width: 100%;
+    max-width: 450px; /* Largeur maximale de la boîte */
+    padding: 20px;
+}
+
+.login-box {
+    border: 1px solid var(--border-color);
+    background-color: var(--panel-bg);
+    padding: 30px;
+}
+
+.login-header {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+/* Style des champs de texte */
+.input-group input {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 10px;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+/* Inversion des couleurs quand on tape dedans */
+.input-group input:focus {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
+
+.login-actions {
+    margin-top: 30px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.login-actions button {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 15px;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.login-actions button:hover {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
+
+.login-status {
+    margin-top: 20px;
+    height: 20px;
+    font-size: 0.85rem;
+    color: var(--text-color);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    /* Force le fond noir du terminal à l'intérieur du champ */
+    -webkit-box-shadow: 0 0 0 100px var(--bg-color) inset !important;
+    
+    /* Force le texte à rester de la couleur ambre rétro */
+    -webkit-text-fill-color: var(--text-color) !important;
+    
+    /* Empêche le navigateur de faire clignoter sa propre couleur de fond */
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+
+/* =========================================
+   STYLES GÉNÉRAUX
+   ========================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    padding-top: 5px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* --- Layout Principal --- */
+.app-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    padding: 10px;
+    gap: 10px;
+}
+
+/* --- Barre Latérale --- */
+.sidebar {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+    padding-right: 10px;
+}
+
+
+.logo {
+    padding-left: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.logo h1 {
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+}
+
+.nav-menu {
+    padding-left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+}
+
+.nav-item {
+    color: var(--text-color);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.nav-item:hover, .nav-item.active {
+    color: var(--bg-color);
+    background-color: var(--highlight-bg);
+    padding-left: 5px;
+    text-shadow: 0 0 5px var(--text-color);
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.notifications {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sys-icons {
+    margin-left: 10px;
+    margin-right: 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2rem;
+}
+
+/* --- Les Trois Boutons Icon (en bas a gauche) --- */
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+     width: 22px;  /* Une boîte de 22x22 parfaite */
+    height: 22px; 
+    font-size: 1.2rem;
+    cursor: pointer;
+    transform: translateY(-3px);
+    transition: all 0.2s; /* tres stylé ca */
+    /* + ce que tu as gardé : background: none, border: none, etc. */
+}
+
+.icon-btn:hover,
+.icon-btn:focus,
+.icon-btn:active {
+    background-color: var(--highlight-bg);    /* inversion : fond ambre */
+    color: var(--bg-color);                   /* texte noir */
+    outline: none;
+}
+#btn-logout {       
+    width: 19px;
+    height: 19px;
+    font-size: 0.85rem;
+}
+
+/* --- Contenu Principal --- */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--panel-bg);
+    overflow: hidden;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 15px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--panel-bg);
+}
+
+.window-controls .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+    background-color: var(--text-color);
+    opacity: 0.5;
+}
+
+.address-bar {
+    border: 1px solid var(--border-color);
+    padding: 2px 15px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.content-area {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.section-title {
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+/* --- Panneaux & Boîtes --- */
+.info-panel {
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    color: var(--bg-color);
+    background-color: var(--highlight-bg);
+}
+
+.image-preview {
+    width: 160px;
+    height: 160px;
+    flex-shrink: 0;
+    border: 1.5px dashed var(--bg-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.details{
+    margin-left: 10px;
+}
+
+.panel-actions {
+    margin-left: 0.5px;
+}
+
+.panel-actions button {
+    background: transparent;
+    border: 1px solid var(--bg-color);
+    color: var(--bg-color);
+    padding: 5px 10px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    margin-right: 10px;
+    margin-left:5px;
+    margin-top: 30px;
+}
+
+.panel-actions button:hover {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 10px;
+    margin-bottom: 5px;
+}
+
+.tab {
+    flex-grow: 1;
+    text-align: center;
+    white-space: nowrap;
+    margin-bottom: -5px;
+
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    color: var(--text-color);
+    padding: 5px 15px;
+    font-family: var(--font-mono);
+    text-decoration: none;
+}
+
+.tab:hover, .nav-item.active, .tab.active {
+    color: var(--bg-color);
+    background-color: var(--highlight-bg);
+    text-shadow: 0 0 5px var(--text-color);
+}
+
+.console-panel {
+    border: 1px solid var(--border-color);
+    padding: 15px;
+}
+
+.console-header {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+
+.log-title {
+    text-decoration: underline;
+    margin-bottom: 10px;
+}
+
+.log-list {
+    list-style: none;
+    margin-bottom: 15px;
+}
+
+.prompt {
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.console-tags {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.tag {
+    border: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    background-color: var(--text-color);
+    color: var(--bg-color);
+    padding: 5px 10px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.tag:hover, .tag.active {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    
+}
+
+.console-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border-color);
+}
+
+/* --- Pied de page / Raccourcis --- */
+.shortcuts-bar {
+    display: flex;
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 10px 20px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+.credit {
+    margin-left: auto;
+}
+
+#depot-certif{
+    font-size: 4rem;
+}
+
+#depot-verif{
+    font-size: 4rem;
+}
+
+/* --- Formulaires Style Terminal --- */
+.terminal-form {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    margin-bottom: 0px;
+}
+
+.form-group label {
+    opacity: 0.7;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.input-line {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.terminal-prompt {
+    margin-right: 8px;
+}
+
+.terminal-input {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-family: var(--font-mono);
+    outline: none;
+}
+
+/* Version courte pour les nombres (ex: taille police) */
+.terminal-input.short {
+    flex-grow: 0;
+    width: 100px;
+}
+
+/* --- Effet miroir pour le curseur terminal --- */
+.mirror-container {
+    position: relative;
+    padding-bottom: 2px;
+}
+
+.terminal-mirror {
+    white-space: pre;
+}
+
+.hidden-terminal-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0 !important; /* Force l'invisibilité */
+    background: transparent !important;
+    color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    cursor: text;
+}
+
+/* --- Gestion intelligente du clignotement --- */
+.mirror-container .prompt {
+    animation: none; 
+    opacity: 0; /* Rendu complètement invisible par défaut */
+}
+
+/* Réactive le clignotement uniquement sur la ligne active */
+.mirror-container:focus-within .prompt {
+    animation: blink 1s step-end infinite; 
+}
+
+/* --- Mise en page Formulaire vs Default Settings --- */
+.form-group {
+    display: flex;
+    flex-direction: row;
+    gap: 40px; /* Espace net entre le formulaire et la box de droite */
+    align-items: flex-start; /* Aligne les deux blocs par le haut */
+}
+
+.form-data {
+    flex: 1; /* Le formulaire s'étire pour prendre toute la place disponible à gauche */
+}
+
+.default {
+    opacity: 0.7;
+    border: 1px solid var(--border-color); /* Crée la fameuse box style terminal */
+    padding: 15px;
+    min-width: 200px; /* Largeur de la box de droite */
+}
+
+.default p {
+    margin-bottom: 15px;
+    text-decoration: underline; /* Souligne le titre de la box */
+}
+
+.default ul {
+    list-style: none; /* Enlève les puces par défaut du navigateur */
+}
+
+.default li {
+    margin-bottom: 8px;
+}
+.default li::before {
+    content: "> "; /* Ajoute un petit chevron devant chaque réglage */
+}
+
+/*#btn-settings{
+    text-align: center;
+    width: 30px;
+    cursor: pointer;
+    font-size: 1.5rem;
+    transform: translateY(-5px);
+}*/
+
+#btn-settings, #btn-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 22px; 
+    cursor: pointer;
+    transition: all 0.2s;
+    transform: translateY(-3px);
+}
+
+#btn-settings {
+    width: 22px;
+    font-size: 1.2rem;
+    
+}
+
+#btn-logout {
+    font-size: 1rem;
+    margin-left: 10px;
+}
+
+#btn-settings:hover, #btn-settings:focus, #btn-settings:active,
+#btn-logout:hover, #btn-logout:focus, #btn-logout:active {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
+
+/* --- Menu des Thèmes --- */
+#theme-menu {
+    position: absolute;
+    bottom: 90px; /* S'affiche juste au-dessus de l'engrenage */
+    left: 5px;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 200px;
+    z-index: 100;
+}
+
+#theme-menu p {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 5px;
+}
+
+.theme-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    text-align: left;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    padding: 3px 0;
+}
+
+.theme-btn:hover {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
+
+/* --- Palettes des Thèmes --- */
+body.theme-blue {
+    --bg-color: #051320;
+    --panel-bg: #051320;
+    --text-color: #64ffda;
+    --border-color: #64ffda;
+    --highlight-bg: #64ffda;
+}
+
+body.theme-beige {
+    --bg-color: #f5eedc; /* Fond Beige */
+    --panel-bg: #f5eedc;
+    --text-color: #5a5d5e; /* Texte Bleu foncé */
+    --border-color: #5a5d5e;
+    --highlight-bg: #5a5d5e;
+}
+
+body.theme-grey {
+    --bg-color: #1e1e1e;
+    --panel-bg: #1e1e1e;
+    --text-color: #d4d4d4;
+    --border-color: #d4d4d4;
+    --highlight-bg: #d4d4d4;
+}
+/* --- Console Signature Numérique --- */
+#affichage-mdp {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end; /* Aligne le bas du bouton avec le bas de la zone de mot de passe */
+    gap: 20px; /* Espace entre le bouton et la zone MDP */
+    
+    margin-bottom: 25px;
+    padding-bottom: 25px;
+    border-bottom: 1px dashed var(--border-color); /* Ligne de séparation élégante */
+}
+
+#btn-signer {
+    font-size: 0.8rem;
+    height: 30px; /* Même hauteur que la zone de texte pour une symétrie parfaite */
+    width: 200px;
+}
+
+.mdp-box label {
+    opacity: 0.7;
+    display: block;
+    margin-bottom: 8px;
+}
+
+#zone-mdp {
+    min-width: 250px; /* Corrige l'erreur de largeur */
+    height: 30px;
+    border: 1px solid var(--border-color);
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-weight: bold;
+}
+
+/* --- Blocs de Vérification Dynamiques --- */
+.verif-file-block {
+    border-top: 1px solid var(--text-color); /* Ligne forte pour séparer les fichiers */
+    background-color: transparent;
+}
+
+.verif-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 colonnes */
+    gap: 15px 30px;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+.verif-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /*border-bottom: 1px dashed var(--border-color); /* Ligne pointillée style terminal */
+    padding-bottom: 5px;
+}
+
+.verif-label {
+    opacity: 0.8;
+}
+
+.verif-result {
+    font-weight: bold;
+}
+
+.verif-global{
+    padding: 2px;
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
+
+/*#btn-export-exif {
+    width: 100%; 
+    background-color: transparent;
+    border: 1px dashed var(--border-color);
+    color: var(--text-color);
+    padding: 10px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+}
+
+#btn-export-exif:hover {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+    border: 1px solid var(--bg-color);
+}*/
+
+/* =========================================
+   HISTORIQUE (GRILLE ET MODAL)
+   ========================================= */
+
+.histo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* Crée des colonnes automatiques */
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.histo-tile {
+    border: 1px dashed var(--border-color);
+    padding: 5px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    background-color: transparent;
+}
+
+.histo-tile:hover {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+    border-style: solid;
+}
+
+.histo-tile img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    margin-bottom: 5px;
+    border: 1px solid var(--border-color);
+}
+
+.histo-tile span {
+    font-size: 0.8rem;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Coupe les noms trop longs avec "..." */
+}
+
+#histo-modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(5, 5, 5, 0.85); /* Fond assombri */
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.histo-modal-content {
+    background-color: var(--panel-bg);
+    width: 90%;
+    max-width: 600px;
+}
