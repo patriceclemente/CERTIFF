@@ -267,8 +267,7 @@ def confirmer(token):
 def api_depot():
     
     user_id = session.get("user_id")
-    if user_id is None:
-        return jsonify({"status": "error", "message": "Non connecté."}), 401
+
 
     if "file" not in request.files:
         return jsonify({"status": "error", "message": "Aucun fichier fourni."}), 400
@@ -276,29 +275,26 @@ def api_depot():
     file = request.files["file"]
     if file.filename == "":
         return jsonify({"status": "error", "message": "Nom de fichier vide."}), 400
-
-    contenu = file.read()
-    try:
-        depot_id, chemin_stockage = depots.enregistrer_depot(user_id, file.filename, contenu)
-        print(f"Dépôt enregistré au dépôt : depot_id={depot_id}, user_id={user_id}")
-    except Exception as e:
-        print("Échec enregistrement dépôt :", e)
-        return jsonify({"status": "error", "message": "Échec de l'enregistrement du dépôt."}), 500
+    depot_id = None
+    if user_id is not None:
+        contenu = file.read()
+        try:
+            depot_id, chemin_stockage = depots.enregistrer_depot(user_id, file.filename, contenu)
+            print(f"Dépôt enregistré au dépôt : depot_id={depot_id}, user_id={user_id}")
+        except Exception as e:
+            print("Échec enregistrement dépôt :", e)
+            return jsonify({"status": "error", "message": "Échec de l'enregistrement du dépôt."}), 500
 
     return jsonify({"status": "success", "depot_id": depot_id})
 # =========================================================
 #  API — CERTIFICATION D'IMAGE
 # =========================================================
 @app.route("/api", methods=["POST"])
+@app.route("/api", methods=["POST"])
 def handle_api():
-    # --- on identifie l'utilisateur via la session ---
     user_id = session.get("user_id")
-    if user_id is None:
-        return jsonify({"status": "error",
-                        "message": "Non connecté. Connecte-toi avant de traiter une image."}), 401
 
     try:
-        # récupération de l'image brute et de l'action
         action = request.form.get("action", "pipeline")
         if "file" not in request.files:
             return jsonify({"status": "error", "message": "Aucun fichier fourni."}), 400
@@ -306,15 +302,29 @@ def handle_api():
         file = request.files["file"]
         if file.filename == "":
             return jsonify({"status": "error", "message": "Nom de fichier vide."}), 400
+
         contenu = file.read()
         depot_id = None
         chemin_stockage = None
-        try:
-            depot_id, chemin_stockage = depots.enregistrer_depot(user_id, file.filename, contenu)
-            print(f"Dépôt enregistré : depot_id={depot_id}, user_id={user_id}")
-        except Exception as e:
-            print("Avertissement : échec enregistrement dépôt :", e)
-            return jsonify({"status": "error", "message": "Échec de l'enregistrement du dépôt."}), 500
+
+        if user_id is not None:
+            # Utilisateur connecté : on persiste le fichier via depots
+            try:
+                depot_id, chemin_stockage = depots.enregistrer_depot(user_id, file.filename, contenu)
+                print(f"Dépôt enregistré : depot_id={depot_id}, user_id={user_id}")
+            except Exception as e:
+                print("Échec enregistrement dépôt :", e)
+                return jsonify({"status": "error", "message": "Échec de l'enregistrement du dépôt."}), 500
+        else:
+            # Utilisateur anonyme : on écrit dans un dossier temporaire
+            import tempfile, os
+            tmp_dir = tempfile.mkdtemp(prefix="anon_")
+            chemin_stockage = os.path.join(tmp_dir, file.filename)
+            with open(chemin_stockage, "wb") as f:
+                f.write(contenu)
+            print(f"Fichier temporaire (anonyme) : {chemin_stockage}")
+
+        # ... reste du traitement inchangé ...
 
         # récupération des paramètres de l'interface JS
         wm_text = request.form.get("wm_text", "© Cert-Art.fr")
