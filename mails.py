@@ -54,3 +54,28 @@ def envoyer_mail_confirmation(destinataire, lien):
         serveur.starttls()
         serveur.login(GMAIL_ADDR, GMAIL_PASS)
         serveur.send_message(msg)
+
+
+def envoyer_mail_blockchain(destinataire, nom_fichier):
+    msg = EmailMessage()
+    msg["Subject"] = "Certification blockchain confirmee"
+    msg["From"] = GMAIL_ADDR
+    msg["To"] = destinataire
+    msg.set_content(
+        "Bonjour,\n\n"
+        f"La preuve blockchain de votre image ({nom_fichier}) est maintenant confirmee.\n\n"
+        "Vous pouvez retourner sur Cert.tif pour consulter votre certification."
+    )
+    msg.add_alternative(f"""
+        <html><body style="font-family:monospace;background:#050505;color:#ff9900;padding:20px;">
+            <h2>CERT.TIF // BLOCKCHAIN</h2>
+            <p>La preuve blockchain de votre image est maintenant confirmee.</p>
+            <p><strong>{nom_fichier}</strong></p>
+            <p style="opacity:0.6;">Vous pouvez retourner sur Cert.tif pour consulter votre certification.</p>
+        </body></html>
+    """, subtype="html")
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as serveur:
+        serveur.starttls()
+        serveur.login(GMAIL_ADDR, GMAIL_PASS)
+        serveur.send_message(msg)

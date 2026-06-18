@@ -4,6 +4,10 @@ import io
 import base64
 import importlib
 import re
+import sqlite3
+import subprocess
+import threading
+import time
 from pathlib import Path
 
 from flask import Flask, request, jsonify, url_for, session
@@ -148,6 +152,237 @@ def run_report_with_saved_artifacts(chemin_stockage):
         sys.stdout = old_stdout
 
     return captured_output.getvalue().splitlines()
+
+
+# =========================================================
+#  BACKGROUND BLOCKCHAIN CHECKER
+# =========================================================
+BLOCKCHAIN_CHECK_INTERVAL_SECONDS = int(os.environ.get("BLOCKCHAIN_CHECK_INTERVAL_SECONDS", "300"))
+BLOCKCHAIN_WORKER_STARTED = False
+BLOCKCHAIN_WORKER_LOCK = threading.Lock()
+
+
+def database_path():
+    return Path(BASE_DIR) / "DB" / "DB.db"
+
+
+def init_blockchain_jobs_table():
+    conn = sqlite3.connect(database_path())
+    try:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS blockchain_jobs (
+                job_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                depot_id INTEGER,
+                image_path TEXT NOT NULL,
+                ots_path TEXT NOT NULL UNIQUE,
+                status TEXT NOT NULL DEFAULT 'pending',
+                notified INTEGER NOT NULL DEFAULT 0,
+                last_message TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_user_email(user_id):
+    conn = sqlite3.connect(database_path())
+    try:
+        row = conn.execute(
+            "SELECT email FROM users WHERE user_id = ?",
+            (user_id,),
+        ).fetchone()
+        return row[0] if row else None
+    finally:
+        conn.close()
+
+
+def get_depot_filename(depot_id):
+    if depot_id is None:
+        return None
+
+    conn = sqlite3.connect(database_path())
+    try:
+        row = conn.execute(
+            "SELECT nom_fichier FROM depots WHERE depot_id = ?",
+            (depot_id,),
+        ).fetchone()
+        return row[0] if row else None
+    finally:
+        conn.close()
+
+
+def resolve_ots_bin():
+    configured = os.environ.get("OTS_BIN")
+    if configured:
+        return configured
+
+    local_ots = Path(BASE_DIR) / ".venv" / "Scripts" / "ots.exe"
+    if local_ots.is_file():
+        return str(local_ots)
+
+    return "ots"
+
+
+def latest_blockchain_target(state_module):
+    for field in (
+        "FILE_NUM_SIGNED",
+        "FILE_WM_INVISIBLE",
+        "FILE_WM_EXIF",
+        "FILE_WM_VISIBLE",
+        "INPUT_IMG_PATH",
+    ):
+        value = getattr(state_module, field, None)
+        if value and Path(value).is_file():
+            return Path(value)
+    return None
+
+
+def register_blockchain_job(user_id, depot_id, state_module):
+    target = latest_blockchain_target(state_module)
+    if not target:
+        print("[WARN] Blockchain worker: aucune image cible a suivre")
+        return
+
+    ots_path = Path(f"{target}.ots")
+    if not ots_path.is_file():
+        print(f"[WARN] Blockchain worker: preuve OTS introuvable pour {target}")
+        return
+
+    image_relative = project_relative_path(target)
+    ots_relative = project_relative_path(ots_path)
+    if not image_relative or not ots_relative:
+        print("[WARN] Blockchain worker: chemin hors projet, job ignore")
+        return
+
+    init_blockchain_jobs_table()
+    conn = sqlite3.connect(database_path())
+    try:
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO blockchain_jobs
+                (user_id, depot_id, image_path, ots_path, status, notified)
+            VALUES (?, ?, ?, ?, 'pending', 0)
+            """,
+            (user_id, depot_id, image_relative, ots_relative),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def list_pending_blockchain_jobs():
+    init_blockchain_jobs_table()
+    conn = sqlite3.connect(database_path())
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(
+            """
+            SELECT job_id, user_id, depot_id, image_path, ots_path
+            FROM blockchain_jobs
+            WHERE status IN ('pending', 'confirmed') AND notified = 0
+            ORDER BY created_at ASC
+            """
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()
+
+
+def update_blockchain_job(job_id, status, last_message, notified=False):
+    conn = sqlite3.connect(database_path())
+    try:
+        conn.execute(
+            """
+            UPDATE blockchain_jobs
+            SET status = ?, last_message = ?, notified = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE job_id = ?
+            """,
+            (status, last_message[:1000], 1 if notified else 0, job_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def blockchain_output_is_confirmed(output):
+    return (
+        "Timestamped by transaction" in output
+        or ("Success!" in output and "attests" in output)
+    )
+
+
+def check_one_blockchain_job(job):
+    ots_path = project_path(job["ots_path"])
+    if not ots_path or not ots_path.is_file():
+        update_blockchain_job(job["job_id"], "error", "Fichier .ots introuvable")
+        return
+
+    ots_bin = resolve_ots_bin()
+    try:
+        subprocess.run(
+            [ots_bin, "upgrade", str(ots_path)],
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        verified = subprocess.run(
+            [ots_bin, "verify", str(ots_path)],
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+    except FileNotFoundError:
+        update_blockchain_job(job["job_id"], "pending", f"Commande OTS introuvable : {ots_bin}")
+        return
+    except subprocess.TimeoutExpired:
+        update_blockchain_job(job["job_id"], "pending", "Verification OTS trop longue")
+        return
+
+    output = (verified.stdout or "") + (verified.stderr or "")
+    if not blockchain_output_is_confirmed(output):
+        update_blockchain_job(job["job_id"], "pending", output or "Preuve encore en attente")
+        return
+
+    email = get_user_email(job["user_id"])
+    if not email:
+        update_blockchain_job(job["job_id"], "confirmed", "Utilisateur introuvable", notified=False)
+        return
+
+    image_name = get_depot_filename(job["depot_id"]) or Path(job["image_path"]).name
+    try:
+        mails.envoyer_mail_blockchain(email, image_name)
+    except Exception as error:
+        update_blockchain_job(job["job_id"], "confirmed", f"Mail non envoye : {error}", notified=False)
+        return
+
+    update_blockchain_job(job["job_id"], "confirmed", "Mail de confirmation envoye", notified=True)
+
+
+def blockchain_worker_loop():
+    while True:
+        try:
+            for job in list_pending_blockchain_jobs():
+                check_one_blockchain_job(job)
+        except Exception as error:
+            print("Erreur blockchain worker :", error)
+        time.sleep(BLOCKCHAIN_CHECK_INTERVAL_SECONDS)
+
+
+def start_blockchain_worker():
+    global BLOCKCHAIN_WORKER_STARTED
+    with BLOCKCHAIN_WORKER_LOCK:
+        if BLOCKCHAIN_WORKER_STARTED:
+            return
+        init_blockchain_jobs_table()
+        thread = threading.Thread(target=blockchain_worker_loop, daemon=True)
+        thread.start()
+        BLOCKCHAIN_WORKER_STARTED = True
 
 
 # =========================================================
@@ -297,6 +532,10 @@ def api_depot():
 def handle_api():
     try:
         # récupération de l'image brute et de l'action
+        user_id = session.get("user_id")
+        if user_id is None:
+            return jsonify({"status": "error", "message": "Non connecte."}), 401
+
         action = request.form.get("action", "pipeline")
         if "file" not in request.files:
             return jsonify({"status": "error", "message": "Aucun fichier fourni."}), 400
@@ -369,6 +608,8 @@ def handle_api():
 
         if return_code == 0:
             store_certification_artifacts(state_module)
+            if action in {"blockchain", "pipeline"}:
+                register_blockchain_job(user_id, depot_id, state_module)
 
         if return_code != 0 and action != "report":
             return jsonify({
@@ -397,8 +638,8 @@ def handle_api():
             state_module.INPUT_IMG_PATH,
         ]
         for path in possible_outputs:
-            if path.is_file():
-                final_image_path = path
+            if path and Path(path).is_file():
+                final_image_path = Path(path)
                 break
 
         # encodage en Base64 de la nouvelle image
@@ -424,4 +665,5 @@ def handle_api():
 
 if __name__ == "__main__":
     print("Serveur Flask (auth + certification) sur http://localhost:5001")
-    app.run(debug=True, port=5001)
+    start_blockchain_worker()
+    app.run(debug=True, port=5001, use_reloader=False)
