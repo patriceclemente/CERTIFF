@@ -71,20 +71,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.ok) {
             usernameDiv.innerText = data.username;
         } else {
+            // Dinguerie
+            const lettres = '0123456789&@#%$%$£éàçΩωΦβΨΛζλΔδΘθηçΩωΦβΨΛαλΔδΘθηΓγ';
+            const cible = 'NOT_FOUND';                       
+            const n = cible.length;
+            const nbGlitch = Math.floor(Math.random() * 4);         
 
-            //Dinguerie
-            const lettres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&@#%$%$£éàçΩωΦβΨΛζζλΔδΘθηçΩωΦβΨΛαζλΔδΘθηΓγ';
-            const n = 9;
-            let chars = new Array(n).fill('A');
+            setInterval(() => {
+                // on part du mot d'origine, lettre par lettre
+                const chars = cible.split('');
 
-            for (let i = 0; i < n; i++) {
-                // chaque lettre a son propre intervalle, à une vitesse légèrement différente
-                const vitesse = 150 + Math.random() *200;   // entre 300 et 800 ms
-                setInterval(() => {
-                    chars[i] = lettres[Math.floor(Math.random() * lettres.length)];
-                    usernameDiv.innerText = chars.join('');
-                }, vitesse);
-            }
+                const positions = [];
+                while (positions.length < nbGlitch) {
+                    const p = Math.floor(Math.random() * n);
+                    if (!positions.includes(p)) positions.push(p);   // pas deux fois la même
+                }
+
+                // on remplace ces positions par un caractère aléatoire
+                for (const p of positions) {
+                    chars[p] = lettres[Math.floor(Math.random() * lettres.length)];
+                }
+
+                usernameDiv.innerText = chars.join('');
+            }, 60);   // rythme (ms)
         }
     })
     .catch(err => {
