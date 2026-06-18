@@ -19,6 +19,12 @@ function Dinguerie(cible, intensity) {
                    
 }
 
+function griser(btn) {
+    if (!btn) return;                    
+    btn.style.opacity = '0.4';   
+    btn.style.pointerEvents = 'none'; 
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     
     // Déconnexion 
@@ -91,7 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const usernameDiv = document.getElementById('username');
         if (data.ok) {
             usernameDiv.innerText = data.username;
+            griser(btnLoginIcon)
         } else {
+            griser(btnLogout)
             setInterval(() => {
             usernameDiv.innerText = Dinguerie('NOT_FOUND', 4);
             }, 60);   // rythme (ms)
