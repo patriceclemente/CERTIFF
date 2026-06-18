@@ -507,16 +507,26 @@ def show_exif() -> bool:
         print("[INFO] EXIF : aucun fichier disponible")
         return False
     explain_source_fallback("Affichage EXIF", target_file, state.FILE_WM_EXIF)
-
     try:
-        run_command([resolve_exiftool_bin(), str(target_file)])
+        run_command(
+            [
+                resolve_exiftool_bin(),
+                "-FileName",
+                "-FileSize",
+                "-FileCreateDate",
+                "-FileTypeExtension",
+                "-Creator",
+                "-Artist",
+                "-Copyright",
+                str(target_file),
+            ]
+        )
     except FileNotFoundError:
         print("[ERROR] exiftool est introuvable")
         return False
     except subprocess.CalledProcessError as error:
         print(f"[ERROR] Echec exiftool : {error}")
         return False
-
     return True
 
 
