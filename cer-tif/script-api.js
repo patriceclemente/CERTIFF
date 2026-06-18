@@ -52,6 +52,99 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCertifStep = 0; // 0: Watermark, 1: EXIF, 2: Stegano, 3: Signature, 4: Blockchain
     let currentDownloadUrl = ""; // Stockera l'image finale pour l'export
 
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function statusFromLines(lines) {
+        if (lines.some(line => line.includes("[ERROR]") || line.includes("[ERREUR]"))) {
+            return { label: "ECHEC", className: "error" };
+        }
+        if (lines.some(line => line.includes("[WARN]") || line.includes("introuvable") || line.includes("aucune info"))) {
+            return { label: "INCOMPLET", className: "warn" };
+        }
+        if (lines.some(line => line.includes("[OK]"))) {
+            return { label: "VALIDE", className: "ok" };
+        }
+        return { label: "INFO", className: "info" };
+    }
+
+    function splitAuditSections(lines) {
+        const sections = [
+            { key: "stegano", title: "Steganographie", icon: "[S]", markers: ["filigrane invisible"], lines: [] },
+            { key: "signature", title: "Signature numerique", icon: "[SIG]", markers: ["signature numerique", "signature numérique"], lines: [] },
+            { key: "blockchain", title: "Blockchain OTS", icon: "[OTS]", markers: ["blockchain"], lines: [] },
+            { key: "exif", title: "Metadonnees EXIF", icon: "[EXIF]", markers: ["exif", "File Type", "MIME Type", "Image Width", "Image Height", "Image Size", "Artist", "Creator", "Copyright", "Date"], lines: [] }
+        ];
+
+        let current = null;
+        lines.forEach(rawLine => {
+            const line = String(rawLine || "").trim();
+            if (!line || line.includes("Rapport final") || line.includes("Verification des dependances") || line.includes("Dependances pretes") || line.includes("[ACTION]")) {
+                return;
+            }
+
+            const lower = line.toLowerCase();
+            const matched = sections.find(section =>
+                section.markers.some(marker => lower.includes(marker.toLowerCase()))
+            );
+
+            if (line.startsWith("===") && matched) {
+                current = matched;
+                return;
+            }
+
+            if (matched && matched.key === "exif" && !line.startsWith("===")) {
+                matched.lines.push(line);
+                current = matched;
+                return;
+            }
+
+            if (current) {
+                current.lines.push(line);
+            }
+        });
+
+        return sections;
+    }
+
+    function renderAuditReport(lines) {
+        const sections = splitAuditSections(lines);
+        const globalStatus = statusFromLines(lines);
+
+        return `
+            <div class="audit-report">
+                <div class="audit-header">
+                    <span>[RAPPORT D'AUDIT TECHNIQUE]</span>
+                    <span class="audit-pill ${globalStatus.className}">${globalStatus.label}</span>
+                </div>
+                <div class="audit-grid">
+                    ${sections.map(section => {
+                        const sectionStatus = statusFromLines(section.lines);
+                        const details = section.lines.length
+                            ? section.lines.map(line => `<li>${escapeHtml(line)}</li>`).join('')
+                            : '<li>Aucune donnee disponible pour cette etape.</li>';
+
+                        return `
+                            <article class="audit-card ${sectionStatus.className}">
+                                <div class="audit-card-title">
+                                    <span>${section.icon} ${section.title}</span>
+                                    <span class="audit-pill ${sectionStatus.className}">${sectionStatus.label}</span>
+                                </div>
+                                <ul class="audit-lines">${details}</ul>
+                            </article>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
     // Réinitialiser le parcours si l'utilisateur change d'image
     const btnImport = document.getElementById('btn-import');
     if (btnImport) btnImport.addEventListener('click', () => fileInput.click());
@@ -263,26 +356,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (statusVerifText) statusVerifText.innerText = "Terminée";
                 
                 if (data.status === "success" && data.terminal_output) {
-                    // Génération dynamique de l'interface du rapport d'audit avec les couleurs de sécurité
-                    resultsContainer.innerHTML = `
-                        <div class="console-panel" style="border-color: #ff9f00; margin-top: 15px;">
-                            <div class="console-header" style="background: #ff9f00; color: #000; padding: 4px 10px; font-weight: bold;">
-                                <span>[📊 RAPPORT D'AUDIT TECHNIQUE SÉCURISÉ]</span>
-                            </div>
-                            <div class="console-body" style="padding: 15px; font-family: monospace; background: #000; max-height: 250px; overflow-y: auto;">
-                                <ul style="list-style: none; padding: 0; margin: 0; line-height: 1.6; text-align: left;">
-                                    ${data.terminal_output.map(line => {
-                                        let color = "#fff"; 
-                                        if (line.includes("[OK]")) color = "#00ff00"; // Vert succès
-                                        if (line.includes("[ERROR]") || line.includes("[WARN]") || line.includes("[ERREUR]")) color = "#ff0000"; // Rouge alerte
-                                        return `<li style="color: ${color};">${line}</li>`;
-                                    }).join('')}
-                                </ul>
-                            </div>
-                        </div>
-                    `;
+                    resultsContainer.innerHTML = renderAuditReport(data.terminal_output);
                 } else {
-                    resultsContainer.innerHTML = `<p style="color: red; font-family: monospace;">Erreur lors de l'audit : ${data.message}</p>`;
+                    resultsContainer.innerHTML = `<p style="color: red; font-family: monospace;">Erreur lors de l'audit : ${escapeHtml(data.message || "Erreur inconnue")}</p>`;
                 }
             })
             .catch(err => {
