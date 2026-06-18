@@ -124,11 +124,34 @@ def confirmer(token):
             <p><a href="/" style="color:#ff9900;">[ SE CONNECTER ]</a></p>
         </body></html>
     """
+# =========================================================
+#  API — FILE UPLOAD
+# =========================================================
+@app.route("/api/upload", methods=["POST"])
+def api_depot():
+    
+    user_id = session.get("user_id")
+    if user_id is None:
+        return jsonify({"status": "error", "message": "Non connecté."}), 401
 
+    if "file" not in request.files:
+        return jsonify({"status": "error", "message": "Aucun fichier fourni."}), 400
 
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"status": "error", "message": "Nom de fichier vide."}), 400
+
+    contenu = file.read()
+    try:
+        depot_id, chemin_stockage = depots.enregistrer_depot(user_id, file.filename, contenu)
+        print(f"Dépôt enregistré au dépôt : depot_id={depot_id}, user_id={user_id}")
+    except Exception as e:
+        print("Échec enregistrement dépôt :", e)
+        return jsonify({"status": "error", "message": "Échec de l'enregistrement du dépôt."}), 500
+
+    return jsonify({"status": "success", "depot_id": depot_id})
 # =========================================================
 #  API — CERTIFICATION D'IMAGE
-#  + enregistrement du dépôt rattaché à l'utilisateur connecté
 # =========================================================
 @app.route("/api", methods=["POST"])
 def handle_api():
