@@ -127,11 +127,15 @@ def restore_certification_artifacts(state_module):
 def run_report_with_saved_artifacts(chemin_stockage):
     state_module = importlib.import_module("certifier_image.state")
     pipeline_module = importlib.import_module("certifier_image.pipeline")
+    paths_module = importlib.import_module("certifier_image.paths")
     utils_module = importlib.import_module("certifier_image.utils")
 
     restored = restore_certification_artifacts(state_module)
     if not restored:
-        state_module.INPUT_IMG_PATH = Path(chemin_stockage)
+        state_module.ACTION = "report"
+        state_module.BASE_DIR = Path(".")
+        state_module.INPUT_IMG = Path(chemin_stockage)
+        paths_module.prepare_pipeline()
 
     old_stdout = sys.stdout
     captured_output = io.StringIO()
@@ -292,8 +296,11 @@ def api_depot():
 @app.route("/api", methods=["POST"])
 @app.route("/api", methods=["POST"])
 def handle_api():
+<<<<<<< HEAD
     user_id = session.get("user_id")
 
+=======
+>>>>>>> e1453eedbd7dd142af2f1295dad2bc84d25d3ba8
     try:
         action = request.form.get("action", "pipeline")
         if "file" not in request.files:
