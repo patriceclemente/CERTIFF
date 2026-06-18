@@ -33,6 +33,7 @@ wheels/
 .history/
 *.code-workspace
 
+
 # ==========================================
 # Fichiers de configuration sensibles (.env)
 # ==========================================
