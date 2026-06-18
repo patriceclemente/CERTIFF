@@ -323,11 +323,15 @@ def run_blockchain() -> bool:
 # -------------------------------------------------------
 def check_stegano() -> bool:
     print("=== Verification du filigrane invisible ===")
-    if not Path(state.FILE_WM_INVISIBLE).is_file():
+    if not state.FILE_WM_INVISIBLE or not Path(state.FILE_WM_INVISIBLE).is_file():
         print("[INFO] Filigrane invisible : aucune info")
         return False
 
-    pw_file = state.WM_SIGNATURE_SUBDIR / "pw.txt"
+    if not state.WM_SIGNATURE_SUBDIR:
+        print("[WARN] Dossier des preuves stegano introuvable, impossible de verifier")
+        return False
+
+    pw_file = Path(state.WM_SIGNATURE_SUBDIR) / "pw.txt"
     if not pw_file.is_file():
         print(f"[WARN] Mot de passe introuvable ({pw_file}), impossible de verifier")
         return False
@@ -363,10 +367,10 @@ def check_stegano() -> bool:
 
 def check_signature() -> bool:
     print("=== Verification de la signature numerique ===")
-    if not Path(state.FILE_NUM_SIGNED).is_file():
+    if not state.FILE_NUM_SIGNED or not Path(state.FILE_NUM_SIGNED).is_file():
         print("[INFO] Image signee introuvable")
         return False
-    if not Path(state.SIG_FILE).is_file():
+    if not state.SIG_FILE or not Path(state.SIG_FILE).is_file():
         print("[INFO] Fichier de signature introuvable")
         return False
 
