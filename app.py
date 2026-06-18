@@ -246,7 +246,7 @@ def handle_api():
         if return_code != 0:
             return jsonify({
                 "status": "error",
-                "message": "Le traitement des filigranes a échoué.",
+                "message": "Le traitement de l'image a échoué",
                 "terminal_output": terminal_logs
             }), 500
 
