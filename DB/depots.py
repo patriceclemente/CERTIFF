@@ -84,13 +84,15 @@ def enregistrer_depot(user_id, file_name, file_content): #chemin doit devenir CH
     with open(chemin_stockage, "wb") as f:
         f.write(file_content)
 
+    # Extraire l'extension depuis le nom de fichier
+    extension = os.path.splitext(file_name)[1].lower()  # ex: ".png"
     # ajouter les infos dans la base
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO depots (user_id, nom_fichier, hash_fichier, taille)
-        VALUES (?, ?, ?, ?)
-    """, (user_id, file_name, hash_fichier, taille))
+        INSERT INTO depots (user_id, nom_fichier, hash_fichier, taille, extension)
+        VALUES (?, ?, ?, ?, ?)
+    """, (user_id, file_name, hash_fichier, taille, extension))
     conn.commit()
     depot_id = cursor.lastrowid
     conn.close()
