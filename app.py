@@ -295,12 +295,6 @@ def api_depot():
 # =========================================================
 @app.route("/api", methods=["POST"])
 def handle_api():
-    # --- on identifie l'utilisateur via la session ---
-    user_id = session.get("user_id")
-    if user_id is None:
-        return jsonify({"status": "error",
-                        "message": "Non connecté. Connecte-toi avant de traiter une image."}), 401
-
     try:
         # récupération de l'image brute et de l'action
         action = request.form.get("action", "pipeline")
