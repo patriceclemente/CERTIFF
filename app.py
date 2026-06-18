@@ -505,9 +505,7 @@ def confirmer(token):
 # =========================================================
 @app.route("/api/upload", methods=["POST"])
 def api_depot():
-    
     user_id = session.get("user_id")
-
 
     if "file" not in request.files:
         return jsonify({"status": "error", "message": "Aucun fichier fourni."}), 400
@@ -515,23 +513,28 @@ def api_depot():
     file = request.files["file"]
     if file.filename == "":
         return jsonify({"status": "error", "message": "Nom de fichier vide."}), 400
-    depot_id = None
-    if user_id is not None:
-        contenu = file.read()
-        try:
-            depot_id, chemin_stockage = depots.enregistrer_depot(user_id, file.filename, contenu)
-            print(f"Dépôt enregistré au dépôt : depot_id={depot_id}, user_id={user_id}")
-        except Exception as e:
-            print("Échec enregistrement dépôt :", e)
-            return jsonify({"status": "error", "message": "Échec de l'enregistrement du dépôt."}), 500
 
-    return jsonify({"status": "success", "depot_id": depot_id})
+    # Lire le contenu AVANT tout
+    contenu = file.read()
+
+    if user_id is None:
+        # Anonyme : on ne persiste pas, mais on ne plante pas non plus
+        return jsonify({"status": "success", "depot_id": None, "message": "Non connecté, dépôt non sauvegardé."})
+
+    try:
+        depot_id, chemin_stockage = depots.enregistrer_depot(user_id, file.filename, contenu)
+        print(f"Dépôt enregistré : depot_id={depot_id}, user_id={user_id}")
+        return jsonify({"status": "success", "depot_id": depot_id})
+    except Exception as e:
+        print("Échec enregistrement dépôt :", e)
+        return jsonify({"status": "error", "message": "Échec de l'enregistrement du dépôt."}), 500
 # =========================================================
 #  API — CERTIFICATION D'IMAGE
 # =========================================================
 @app.route("/api", methods=["POST"])
 def handle_api():
     user_id = session.get("user_id")
+    old_stdout = None
 
     try:
         action = request.form.get("action", "pipeline")
@@ -543,26 +546,15 @@ def handle_api():
             return jsonify({"status": "error", "message": "Nom de fichier vide."}), 400
 
         contenu = file.read()
+
+        # --- Copie de travail temporaire (jamais en base) ---
         depot_id = None
-        chemin_stockage = None
+        tmp_dir = tempfile.mkdtemp(prefix="work_")
+        chemin_stockage = os.path.join(tmp_dir, file.filename)
+        with open(chemin_stockage, "wb") as f:
+            f.write(contenu)
 
-        if user_id is not None:
-            # Utilisateur connecté : on persiste le fichier via depots
-            try:
-                depot_id, chemin_stockage = depots.enregistrer_depot(user_id, file.filename, contenu)
-                print(f"Dépôt enregistré : depot_id={depot_id}, user_id={user_id}")
-            except Exception as e:
-                print("Échec enregistrement dépôt :", e)
-                return jsonify({"status": "error", "message": "Échec de l'enregistrement du dépôt."}), 500
-        else:
-            # Utilisateur anonyme : on écrit dans un dossier temporaire
-            tmp_dir = tempfile.mkdtemp(prefix="anon_")
-            chemin_stockage = os.path.join(tmp_dir, file.filename)
-            with open(chemin_stockage, "wb") as f:
-                f.write(contenu)
-            print(f"Fichier temporaire (anonyme) : {chemin_stockage}")
-
-        # récupération des paramètres de l'interface JS
+        # parametres de l'interface
         wm_text = request.form.get("wm_text", "© Cert-Art.fr")
         wm_size = request.form.get("wm_size", "35")
         wm_color = request.form.get("wm_color", "128,128,128")
@@ -571,7 +563,6 @@ def handle_api():
         wm_spacing = request.form.get("wm_spacing", "300")
         stegano_message = request.form.get("stegano_message", "defaut")
 
-        # préparation de la liste d'arguments requise par cli.py
         argv = [
             "--no-interactive",
             "--wm-text", str(wm_text),
@@ -582,12 +573,11 @@ def handle_api():
             "--wm-spacing", str(wm_spacing),
             "--stegano-message", str(stegano_message),
             action,
-            chemin_stockage  # chemin du fichier déposé par l'utilisateur,
+            chemin_stockage,
         ]
 
-        print(f"Transmission des paramètres au moteur : {argv}")
+        print(f"Transmission des parametres au moteur : {argv}")
 
-        # appelle du module cli.py dynamiquement
         cli_module = importlib.import_module("certifier_image.cli")
         state_module = importlib.import_module("certifier_image.state")
 
@@ -602,41 +592,31 @@ def handle_api():
                 "terminal_output": public_terminal_logs
             })
 
-        # on capture les print() pour qu'ils s'affichent à l'écran
         old_stdout = sys.stdout
         captured_output = io.StringIO()
         sys.stdout = captured_output
 
-        # lancement du main avec les arguments récupérés de l'IHM
         return_code = cli_module.main(argv)
 
-        # on restaure le terminal normal et on récupère les logs
         sys.stdout = old_stdout
         terminal_logs = captured_output.getvalue().splitlines()
         public_terminal_logs = sanitize_terminal_logs(terminal_logs)
 
         if return_code == 0:
             store_certification_artifacts(state_module)
+            # depot_id est None ici : la notification blockchain utilisera
+            # le nom de fichier de l'image au lieu du nom du depot.
             if user_id is not None and action in {"blockchain", "pipeline"}:
                 register_blockchain_job(user_id, depot_id, state_module)
 
         if return_code != 0 and action != "report":
             return jsonify({
                 "status": "error",
-                "message": "Le traitement de l'image a échoué",
+                "message": "Le traitement de l'image a echoue",
                 "terminal_output": public_terminal_logs
             }), 500
 
-        # localisation de l'image créée par le python
-        img_base = Path(chemin_stockage).stem
-        possible_outputs = [
-            Path(f"watermark-signature_numérique/{img_base}/{img_base}-watermarked_exif-openstego-num_signed.png"),
-            Path(f"watermark-filigrane-invisible/{img_base}/{img_base}-watermarked_exif-openstego.png"),
-            Path(f"watermark-filigrane-visible/{img_base}/{img_base}-watermarked_exif.png"),
-            Path(f"watermark-filigrane-visible/{img_base}/{img_base}-watermarked.png"),
-            Path(f"images_brutes/{img_base}/{img_base}.png"),
-        ]
-
+        # localisation de l'image produite
         final_image_path = None
         state_module = importlib.import_module("certifier_image.state")
         possible_outputs = [
@@ -651,7 +631,6 @@ def handle_api():
                 final_image_path = Path(path)
                 break
 
-        # encodage en Base64 de la nouvelle image
         base64_image = None
         if final_image_path and final_image_path.is_file():
             with open(final_image_path, "rb") as img_file:
@@ -667,7 +646,7 @@ def handle_api():
         })
 
     except Exception as e:
-        if "old_stdout" in locals():
+        if old_stdout is not None:
             sys.stdout = old_stdout
         return jsonify({"status": "error", "message": str(e)}), 500
 
