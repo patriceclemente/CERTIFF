@@ -261,6 +261,14 @@ def handle_api():
         ]
 
         final_image_path = None
+        state_module = importlib.import_module("certifier_image.state")
+        possible_outputs = [
+            state_module.FILE_NUM_SIGNED,
+            state_module.FILE_WM_INVISIBLE,
+            state_module.FILE_WM_EXIF,
+            state_module.FILE_WM_VISIBLE,
+            state_module.INPUT_IMG_PATH,
+        ]
         for path in possible_outputs:
             if path.is_file():
                 final_image_path = path
@@ -272,7 +280,6 @@ def handle_api():
             with open(final_image_path, "rb") as img_file:
                 encoded_string = base64.b64encode(img_file.read()).decode("utf-8")
             base64_image = f"data:image/png;base64,{encoded_string}"
-            os.remove(final_image_path)
 
         return jsonify({
             "status": "success",
