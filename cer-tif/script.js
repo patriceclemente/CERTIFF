@@ -1,4 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    // Déconnexion 
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) {
+        btnLogout.style.cursor = 'pointer';
+        btnLogout.addEventListener('click', () => {
+            fetch('/api/deconnexion', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.ok) {
+                        window.location.href = '/';   // retour à la page de login
+                    }
+                })
+                .catch(err => console.error('Erreur déconnexion :', err));
+        });
+    }
+
+    // Connexion : renvoyer vers la page de login 
+    const btnLoginIcon = document.getElementById('btn-login');
+    if (btnLoginIcon) {
+        btnLoginIcon.style.cursor = 'pointer';
+        btnLoginIcon.addEventListener('click', () => {
+            window.location.href = '/';   // la racine sert login.html
+        });
+    }
     
     // Gestion de la navigation latérale
     const navItems = document.querySelectorAll('.nav-item');
@@ -46,9 +71,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.ok) {
             usernameDiv.innerText = data.username;
         } else {
-            usernameDiv.innerText = 'Invité';
-            // optionnel : si non connecté, renvoyer vers le login
-            // window.location.href = '/';
+
+            //Dinguerie
+            const lettres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&@#%$%$£éàçΩωΦβΨΛζζλΔδΘθηçΩωΦβΨΛαζλΔδΘθηΓγ';
+            const n = 9;
+            let chars = new Array(n).fill('A');
+
+            for (let i = 0; i < n; i++) {
+                // chaque lettre a son propre intervalle, à une vitesse légèrement différente
+                const vitesse = 150 + Math.random() *200;   // entre 300 et 800 ms
+                setInterval(() => {
+                    chars[i] = lettres[Math.floor(Math.random() * lettres.length)];
+                    usernameDiv.innerText = chars.join('');
+                }, vitesse);
+            }
         }
     })
     .catch(err => {
@@ -93,6 +129,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // On lit uniquement le premier fichier pour la miniature
             reader.readAsDataURL(selectedFiles[0]);
+            //enregistrer chaque fichier déposé en base ---
+            selectedFiles.forEach(file => {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log(`Dépôt enregistré : ${file.name} (id=${data.depot_id})`);
+                    } else {
+                        console.error(`Erreur dépôt ${file.name} :`, data.message);
+                    }
+                })
+                .catch(err => console.error(`Erreur réseau dépôt ${file.name} :`, err));
+            });
         }
     });
 

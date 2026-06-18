@@ -212,6 +212,37 @@ body {
     font-size: 1.2rem;
 }
 
+/* --- Les Trois Boutons Icon (en bas a gauche) --- */
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+     width: 22px;  /* Une boîte de 22x22 parfaite */
+    height: 22px; 
+    font-size: 1.2rem;
+    cursor: pointer;
+    transform: translateY(-3px);
+    transition: all 0.2s; /* tres stylé ca */
+    /* + ce que tu as gardé : background: none, border: none, etc. */
+}
+
+.icon-btn:hover,
+.icon-btn:focus,
+.icon-btn:active {
+    background-color: var(--highlight-bg);    /* inversion : fond ambre */
+    color: var(--bg-color);                   /* texte noir */
+    outline: none;
+}
+#btn-logout {       
+    width: 19px;
+    height: 19px;
+    font-size: 0.85rem;
+}
+
 /* --- Contenu Principal --- */
 .main-content {
     flex: 1;
@@ -542,16 +573,6 @@ body {
     transform: translateY(-5px);
 }*/
 
-#btn-settings {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;  /* Une boîte de 22x22 parfaite */
-    height: 22px; 
-    font-size: 1.2rem; /* Réduit proportionnellement pour ne pas déborder */
-    cursor: pointer;
-    transform: translateY(-3px); /* Réajustement vertical léger */
-}
 
 #btn-settings:hover, #btn-settings:focus, #btn-settings:active {
     background-color: var(--text-color);
