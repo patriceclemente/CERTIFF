@@ -296,11 +296,8 @@ def api_depot():
 @app.route("/api", methods=["POST"])
 @app.route("/api", methods=["POST"])
 def handle_api():
-<<<<<<< HEAD
     user_id = session.get("user_id")
 
-=======
->>>>>>> e1453eedbd7dd142af2f1295dad2bc84d25d3ba8
     try:
         action = request.form.get("action", "pipeline")
         if "file" not in request.files:
