@@ -83,7 +83,6 @@ def historique():
 # =========================================================
 #  API — AUTHENTIFICATION (partie login/signup)
 # =========================================================
-
 @app.route("/api/inscription", methods=["POST"])
 def inscription():
     data = request.get_json()

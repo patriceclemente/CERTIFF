@@ -1,6 +1,11 @@
 Pillow
 pycryptodome
+<<<<<<< HEAD
 
 Flask 
 Itsdangerous
+=======
+Flask
+itsdangerous
+>>>>>>> origin/login/signup
 python-dotenv
