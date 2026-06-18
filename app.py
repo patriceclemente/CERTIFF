@@ -41,6 +41,44 @@ def accueil():
     # page d'accueil = login
     return app.send_static_file("login.html")
 
+# =========================================================
+#  INFO SESSION
+# =========================================================
+@app.route("/api/me")
+def me():
+    user_id = session.get("user_id")
+    if user_id is None:
+        return jsonify({"ok": False, "message": "Non connecté"}), 401
+
+    username = users.get_username(user_id)   # voir note ci-dessous
+    if username is None:
+        return jsonify({"ok": False, "message": "Utilisateur introuvable"}), 404
+
+    return jsonify({"ok": True, "username": username})
+
+# =========================================================
+#  HISTORIQUE
+# =========================================================
+
+@app.route("/api/historique")
+def historique():
+    user_id = session.get("user_id")
+    if user_id is None:
+        return jsonify({"ok": False, "message": "Connect toi petit malin"}), 401
+
+    depots_bruts = depots.lister_depots(user_id)   # liste de tuples
+
+    # on transforme chaque tuple en dictionnaire (plus clair côté JS)
+    depots_liste = []
+    for d in depots_bruts:
+        depots_liste.append({
+            "nom_fichier": d[0],
+            "hash_fichier": d[1],
+            "date_depot": d[2],
+            "taille": d[3]
+        })
+
+    return jsonify({"ok": True, "depots": depots_liste})
 
 # =========================================================
 #  API — AUTHENTIFICATION (partie login/signup)
@@ -55,7 +93,7 @@ def inscription():
     if not username or not email or not mdp:
         return jsonify({"ok": False, "message": "CHAMPS MANQUANTS."})
 
-    resultat = users.creer_utilisateur(username, email, mdp)
+    resultat = users.create_user(username, email, mdp)
 
     if resultat == "user_created":
         token = mails.generer_token(email)
@@ -80,7 +118,7 @@ def connexion():
     identifiant = data.get("identifiant", "").strip()   # email OU username
     mdp = data.get("mot_de_passe", "")
 
-    statut = users.verifier_identifiants(identifiant, mdp)
+    statut = users.verif_id(identifiant, mdp)
     if statut == "ok":
         # on mémorise QUI est connecté dans la session (lu ensuite par /api)
         session["user_id"] = users.get_user_id(identifiant)
@@ -109,11 +147,34 @@ def confirmer(token):
             <p><a href="/" style="color:#ff9900;">[ SE CONNECTER ]</a></p>
         </body></html>
     """
+# =========================================================
+#  API — FILE UPLOAD
+# =========================================================
+@app.route("/api/upload", methods=["POST"])
+def api_depot():
+    
+    user_id = session.get("user_id")
+    if user_id is None:
+        return jsonify({"status": "error", "message": "Non connecté."}), 401
 
+    if "file" not in request.files:
+        return jsonify({"status": "error", "message": "Aucun fichier fourni."}), 400
 
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"status": "error", "message": "Nom de fichier vide."}), 400
+
+    contenu = file.read()
+    try:
+        depot_id, chemin_stockage = depots.enregistrer_depot(user_id, file.filename, contenu)
+        print(f"Dépôt enregistré au dépôt : depot_id={depot_id}, user_id={user_id}")
+    except Exception as e:
+        print("Échec enregistrement dépôt :", e)
+        return jsonify({"status": "error", "message": "Échec de l'enregistrement du dépôt."}), 500
+
+    return jsonify({"status": "success", "depot_id": depot_id})
 # =========================================================
 #  API — CERTIFICATION D'IMAGE
-#  + enregistrement du dépôt rattaché à l'utilisateur connecté
 # =========================================================
 @app.route("/api", methods=["POST"])
 def handle_api():
@@ -228,5 +289,5 @@ def handle_api():
 
 
 if __name__ == "__main__":
-    print("Serveur Flask (auth + certification) sur http://localhost:5000")
+    print("Serveur Flask (auth + certification) sur http://localhost:5001")
     app.run(debug=True, port=5001)

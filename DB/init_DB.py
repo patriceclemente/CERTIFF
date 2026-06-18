@@ -13,6 +13,7 @@ def init():
     
     print("---Base initialisée---")
 
+    users.create_test_user()  # créer un utilisateur de test si la table est vide
 
 if __name__ == "__main__":
     init()

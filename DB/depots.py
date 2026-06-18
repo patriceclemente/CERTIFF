@@ -5,11 +5,12 @@ import sqlite3
 import hashlib
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))    # dossier du script
-DB_PATH = os.path.join(BASE_DIR, "DB.db")                # chemin de la base
-STOCKAGE_DIR = os.path.join(BASE_DIR, "stockage")        # dossier des fichiers
-STOCKAGE_BRUT_DIR = os.path.join(STOCKAGE_DIR, "brut")  # dossier des images bruts
-#CHEMIN=     # chemin vers les fichier deposer
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))       # dossier du script
+DB_PATH = os.path.join(BASE_DIR, "DB.db")                   # chemin de la base
+STOCKAGE_DIR = os.path.join(BASE_DIR, "stockage")           # dossier stockage
+RAW_UPLOAD_DIR = os.path.join(STOCKAGE_DIR, "raw_uploads")  # dossier stockage temporaire
+COOKED_UPLOAD_DIR = os.path.join(STOCKAGE_DIR, "cooked_uploads")  # dossier stockage de fichier traités (ou en cours de traitement)
+
 
 
 #################################
@@ -29,7 +30,7 @@ def create_history_table():
             extension TEXT NOT NULL,
             date_depot TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             taille INTEGER NOT NULL,
-            mdp_img TEXT,
+            mdp_stgno TEXT DEFAULT 'password',
             FOREIGN KEY (user_id) REFERENCES users(user_id)
         )
     """)
@@ -68,27 +69,33 @@ def enregistrer_mdp_img(user_id, nom_fichier, mdp):
     conn.commit()
     conn.close()
 
-def enregistrer_depot(user_id, nom_fichier, contenu):
-    """Enregistre un dépôt à partir du contenu (octets) et du nom d'origine.
+def enregistrer_depot(user_id, file_name, file_content): #chemin doit devenir CHEMIN
+    """Enregistre un dépôt : écrit le contenu dans STOCKAGE_DIR et ajoute une ligne en base.
     Retourne (depot_id, chemin_stockage)."""
-    hash_fichier = hashlib.sha256(contenu).hexdigest()
-    taille = len(contenu)
+     
+    print(f"Enregistrement du dépôt pour l'utilisateur {user_id} : {file_name}")
+
+    hash_fichier = hashlib.sha256(file_content).hexdigest()
+    taille = len(file_content)
+
     # écrire le fichier dans le dossier de stockage, nommé par son hash
-    os.makedirs(STOCKAGE_DIR, exist_ok=True)
-    os.makedirs(STOCKAGE_BRUT_DIR, exist_ok=True)
-    chemin_stockage = os.path.join(STOCKAGE_BRUT_DIR, hash_fichier)
+    os.makedirs(RAW_UPLOAD_DIR, exist_ok=True)
+    chemin_stockage = os.path.join(RAW_UPLOAD_DIR, hash_fichier)
     with open(chemin_stockage, "wb") as f:
-        f.write(contenu)
+        f.write(file_content)
+
+    # ajouter les infos dans la base
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO depots (user_id, nom_fichier, hash_fichier, taille)
         VALUES (?, ?, ?, ?)
-    """, (user_id, nom_fichier, hash_fichier, taille))
+    """, (user_id, file_name, hash_fichier, taille))
     conn.commit()
     depot_id = cursor.lastrowid
     conn.close()
-    return depot_id, chemin_stockage
+
+    return depot_id, chemin_stockage 
 
 def supprimer_depot(depot_id):
     """Supprime un dépôt : efface le fichier du stockage et la ligne en base."""
@@ -102,7 +109,7 @@ def supprimer_depot(depot_id):
         raise ValueError("Depot non trouvé")
     hash_fichier = ligne[0]
     # supprimer le fichier du stockage
-    chemin_stockage = os.path.join(STOCKAGE_DIR, hash_fichier)
+    chemin_stockage = os.path.join(RAW_UPLOAD_DIR, hash_fichier)
     if os.path.exists(chemin_stockage):
         os.remove(chemin_stockage)
     # supprimer la ligne en base
@@ -111,10 +118,10 @@ def supprimer_depot(depot_id):
     conn.close()
 
 def enregistrer_traitement(depot_id, traitement, status):
-    """Enregistre le statut d'un traitement sur un dépôt"""
-    if status not in ("en cours", "terminé", "échoué", "non traité"):
+    """Enregistre le statut d'un traitement sur un dépôt (najout pas dans le dossier de stockage COOKED_UPLOAD_DIR)"""
+    if status not in ("en_cours", "termine", "echec"):
         raise ValueError("Status invalide")
-    if traitement not in ("signature", "blockchain", "meta-data", "watermarking_v", "steganographie", "watermarking_i"):
+    if traitement not in ("signature", "blockchain", "meta-data", "watermarking", "steganographie"):
         raise ValueError("Traitement invalide")
     
     conn = sqlite3.connect(DB_PATH)
@@ -139,6 +146,8 @@ def supprimer_traitement(depot_id, traitement):
 
 def modifier_status_traitement(depot_id, traitement, nouveau_status):
     """Modifie le statut d'un traitement sur un dépôt"""
+    if nouveau_status not in ("en_cours", "termine", "echec"):
+        raise ValueError("Status invalide")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
@@ -149,6 +158,17 @@ def modifier_status_traitement(depot_id, traitement, nouveau_status):
     conn.commit()
     conn.close()
 
+def modifier_mdp_stgno_depot(depot_id, mdp_stgno):
+    """Modifie/Ajoute le mot de passe de signature/steganographie d'un dépôt"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE depots
+        SET mdp_stgno = ?
+        WHERE depot_id = ?
+    """, (mdp_stgno, depot_id))
+    conn.commit()
+    conn.close()
 #################################
 #######EXTRACTIONS INFO##########
 #################################

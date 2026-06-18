@@ -1,4 +1,97 @@
+function Dinguerie(cible, intensity) {
+    // Implementation for Dinguerie function
+    const n = cible.length;
+    const lettres = '0123456789&@#%$%$£éàçΩωΦβΨΛζλΔδΘθηçΩωΦβΨΛαλΔδΘθηΓγ';
+    // on part du mot d'origine, lettre par lettre
+    const chars = cible.split('');
+    const nbGlitch = Math.floor(Math.random() * intensity);
+    const positions = [];
+    while (positions.length < nbGlitch) {
+        const p = Math.floor(Math.random() * n);
+        if (!positions.includes(p)) positions.push(p);   // pas deux fois la même
+    }
+
+    // on remplace ces positions par un caractère aléatoire
+    for (const p of positions) {
+        chars[p] = lettres[Math.floor(Math.random() * lettres.length)];
+    }
+    return chars.join('');
+                   
+}
+
+function griser(btn) {
+    if (!btn) return;                    
+    btn.style.opacity = '0.4';   
+    btn.style.pointerEvents = 'none'; 
+}
+function chargerHistorique() {
+    const container = document.getElementById('historique-container');
+    container.innerHTML = '> Chargement...';
+
+    fetch('/api/historique')
+        .then(r => r.json())
+        .then(data => {
+            if (!data.ok) {
+                container.innerHTML = '> Connecte-toi pour voir ton historique.';
+                return;
+            }
+            if (data.depots.length === 0) {
+                container.innerHTML = '> Aucun dépôt pour le moment.';
+                return;
+            }
+
+            container.innerHTML = '';
+            data.depots.forEach(depot => {
+                // taille en Ko, arrondie
+                const tailleKo = (depot.taille / 1024).toFixed(1);
+
+                const ligne = document.createElement('div');
+                ligne.className = 'console-panel';
+                ligne.style.marginBottom = '10px';
+                ligne.innerHTML = `
+                    <div class="console-header">
+                        <span>// ${depot.nom_fichier}</span>
+                        <span>${depot.date_depot}</span>
+                    </div>
+                    <div style="padding-top:8px; opacity:0.8;">
+                        > Taille : ${tailleKo} Ko<br>
+                        > Hash : ${depot.hash_fichier.substring(0, 16)}...
+                    </div>
+                `;
+                container.appendChild(ligne);
+            });
+        })
+        .catch(err => {
+            container.innerHTML = '> Erreur de chargement.';
+            console.error('Erreur historique :', err);
+        });
+}
 document.addEventListener('DOMContentLoaded', () => {
+    
+    // Déconnexion 
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) {
+        btnLogout.style.cursor = 'pointer';
+        btnLogout.addEventListener('click', () => {
+            fetch('/api/deconnexion', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.ok) {
+                        window.location.href = '/index.html';   // retour à la page de login
+                    }
+                })
+                .catch(err => console.error('Erreur déconnexion :', err));
+        });
+    }
+
+    // Connexion : renvoyer vers la page de login 
+    const btnLoginIcon = document.getElementById('btn-login');
+    if (btnLoginIcon) {
+        btnLoginIcon.style.cursor = 'pointer';
+        btnLoginIcon.addEventListener('click', () => {
+            window.location.href = '/';   // la racine sert login.html
+        });
+    }
     
     // Gestion de la navigation latérale
     const navItems = document.querySelectorAll('.nav-item');
@@ -15,14 +108,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const panelCertif = document.getElementById('panel-certification');
             const panelVerif = document.getElementById('panel-verification');
+            const panelHisto = document.getElementById('panel-historique');
             const targetMenu = e.target.innerText.trim();
 
             if (targetMenu === "Vérification") {
                 if(panelCertif) panelCertif.style.display = "none";
                 if(panelVerif) panelVerif.style.display = "block";
+                if(panelHisto) panelHisto.style.display = "none";
             } else if (targetMenu === "Certification") {
                 if(panelVerif) panelVerif.style.display = "none";
                 if(panelCertif) panelCertif.style.display = "block";
+                if(panelHisto) panelHisto.style.display = "none";
+            } else if (targetMenu === "Historique") {
+                if(panelCertif) panelCertif.style.display = "none";
+                if(panelVerif) panelVerif.style.display = "none";
+                if(panelHisto) panelHisto.style.display = "block";
+                chargerHistorique();
             }
         });
     });
@@ -36,6 +137,50 @@ document.addEventListener('DOMContentLoaded', () => {
     if(btnImport){
         btnImport.addEventListener('click', () => fileInput.click());
     }
+
+    // affichage username
+    
+    fetch('/api/me')
+    .then(response => response.json())
+    .then(data => {
+        const usernameDiv = document.getElementById('username');
+        if (data.ok) {
+            usernameDiv.innerText = data.username;
+            griser(btnLoginIcon)
+        } else {
+            griser(btnLogout)
+            setInterval(() => {
+            usernameDiv.innerText = Dinguerie('NOT_FOUND', 4);
+            }, 60);   // rythme (ms)
+           // INVITÉ : masquer l'onglet Vérification et Historique (sidebar) 
+           //a securisé quand on connectera l'api avec les fonctionnalités bloquées
+           function glitcherElement(element,intensity) {
+                const mot = element.innerText.trim();   // on mémorise le vrai mot
+                element.style.opacity = '0.4';
+                element.style.pointerEvents = 'none';            // non cliquable
+                setInterval(() => {
+                    element.innerText = Dinguerie(mot, intensity);
+                }, 80);
+            }
+            // --- onglets sidebar bloqués ---
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const txt = item.innerText.trim();
+                if (txt === 'Vérification' || txt === 'Historique') {
+                    glitcherElement(item, 4);
+                }
+            });
+
+            // --- onglet Blockchain OTS bloqué ---
+            document.querySelectorAll('.tab').forEach(tab => {
+                if (tab.innerText.trim() === 'Blockchain OTS') {
+                    glitcherElement(tab, 4);
+                }
+            });
+        }
+    })
+    .catch(err => {
+        console.error('Impossible de récupérer l\'utilisateur :', err);
+    });
 
     // Variable globale pour stocker tous les fichiers du lot
     let selectedFiles = [];
@@ -75,6 +220,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // On lit uniquement le premier fichier pour la miniature
             reader.readAsDataURL(selectedFiles[0]);
+            //enregistrer chaque fichier déposé en base ---
+            selectedFiles.forEach(file => {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log(`Dépôt enregistré : ${file.name} (id=${data.depot_id})`);
+                    } else {
+                        console.error(`Erreur dépôt ${file.name} :`, data.message);
+                    }
+                })
+                .catch(err => console.error(`Erreur réseau dépôt ${file.name} :`, err));
+            });
         }
     });
 
