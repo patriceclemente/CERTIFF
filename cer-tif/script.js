@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- onglets sidebar bloqués ---
             document.querySelectorAll('.nav-item').forEach(item => {
                 const txt = item.innerText.trim();
-                if (txt === 'Vérification' || txt === 'Historique') {
+                if (txt === 'Historique') {
                     glitcherElement(item, 4);
                 }
             });
