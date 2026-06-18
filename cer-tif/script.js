@@ -165,16 +165,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- onglets sidebar bloqués ---
             document.querySelectorAll('.nav-item').forEach(item => {
                 const txt = item.innerText.trim();
-                if (txt === 'Historique') {
+                if (txt === 'Vérification' || txt === 'Historique') {
                     glitcherElement(item, 4);
                 }
             });
 
             // --- onglet Blockchain OTS bloqué ---
             document.querySelectorAll('.tab').forEach(tab => {
-                if (tab.innerText.trim() === 'Blockchain OTS' || 
-                    tab.innerText.trim() === 'Signature Num.' ||
-                    tab.innerText.trim() === 'Stegano') {
+                if (tab.innerText.trim() === 'Blockchain OTS') {
                     glitcherElement(tab, 4);
                 }
             });
