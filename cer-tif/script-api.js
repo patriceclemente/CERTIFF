@@ -1,57 +1,17 @@
+// ============================================================
+//  Cert.tif - script-api.js  (couche API)
+//  Responsabilites :
+//   - pipeline de certification (bouton [N] Next, [Exécuter])
+//   - export de l'image traitee
+//   - rapport d'audit de la zone Verification (action=report)
+//  L'interface (nav, apercu, miroir, themes, onglets) est dans script.js
+// ============================================================
+
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("Liaison API Cert.tif activée, autonome et boostée ! 🚀");
 
-    // =========================================================================
-    // BLOCK A : GESTION DU CLIC SUR CERTIFICATION / VÉRIFICATION (ONGLETS PRINCIPAUX)
-    // =========================================================================
-    const navItems = document.querySelectorAll('.nav-item');
-    const panelCertif = document.getElementById('panel-certification');
-    const panelVerif = document.getElementById('panel-verification');
-
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-
-            const text = item.innerText.trim();
-            if (text === "Certification") {
-                panelCertif.style.display = 'block';
-                panelVerif.style.display = 'none';
-            } else if (text === "Vérification") {
-                panelCertif.style.display = 'none';
-                panelVerif.style.display = 'block';
-            }
-        });
-    });
-
-    // =========================================================================
-    // BLOCK B : EFFET MIROIR RÉTRO POUR LES INPUTS TERMINAL
-    // =========================================================================
-    const inputs = document.querySelectorAll('.hidden-terminal-input');
-    inputs.forEach(input => {
-        const container = input.closest('.mirror-container');
-        if (container) {
-            const mirror = container.querySelector('.terminal-mirror');
-            input.addEventListener('input', () => {
-                mirror.textContent = input.value;
-            });
-        }
-    });
-
-    // =========================================================================
-    // DÉCLARATION DES VARIABLES & ÉLÉMENTS DE CERTIFICATION
-    // =========================================================================
-    const fileInput = document.getElementById('file-upload');
-    const dropZone = document.querySelector('.image-preview');
-    const btnExecute = document.querySelector('.console-footer span:first-child');
-    const btnExport = document.querySelector('.console-tags .tag');
-    const btnNext = document.getElementById('btn-next');
-    const tabs = document.querySelectorAll('.tab');
-    
-    let currentCertifStep = 0; // 0: Watermark, 1: EXIF, 2: Stegano, 3: Signature, 4: Blockchain
-    let currentDownloadUrl = ""; // Stockera l'image finale pour l'export
-
+    // ---------------------------------------------------------
+    //  Outils de rendu du rapport d'audit
+    // ---------------------------------------------------------
     function escapeHtml(value) {
         return String(value)
             .replace(/&/g, '&amp;')
@@ -98,16 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 current = matched;
                 return;
             }
-
             if (matched && matched.key === "exif" && !line.startsWith("===")) {
                 matched.lines.push(line);
                 current = matched;
                 return;
             }
-
-            if (current) {
-                current.lines.push(line);
-            }
+            if (current) current.lines.push(line);
         });
 
         return sections;
@@ -129,7 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         const details = section.lines.length
                             ? section.lines.map(line => `<li>${escapeHtml(line)}</li>`).join('')
                             : '<li>Aucune donnee disponible pour cette etape.</li>';
-
                         return `
                             <article class="audit-card ${sectionStatus.className}">
                                 <div class="audit-card-title">
@@ -145,25 +100,32 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // Réinitialiser le parcours si l'utilisateur change d'image
-    const btnImport = document.getElementById('btn-import');
-    if (btnImport) btnImport.addEventListener('click', () => fileInput.click());
-    if (dropZone) dropZone.addEventListener('click', () => fileInput.click());
-    
+    // ---------------------------------------------------------
+    //  Elements pipeline certification
+    // ---------------------------------------------------------
+    const fileInput = document.getElementById('file-upload');
+    const dropZone = document.querySelector('.image-preview');
+    const btnExecute = document.querySelector('.console-footer span:first-child');
+    const btnExport = document.querySelector('.console-tags .tag');
+    const btnNext = document.getElementById('btn-next');
+    const tabs = document.querySelectorAll('.tab');
+
+    let currentCertifStep = 0; // 0:Watermark 1:EXIF 2:Stegano 3:Signature 4:Blockchain
+    let currentDownloadUrl = "";
+
+    // Reinitialiser le parcours quand l'image change
     if (fileInput) {
         fileInput.addEventListener('change', () => {
             currentCertifStep = 0;
-            console.log("🔄 Nouvelle image détectée. Stepper réinitialisé à l'étape 0.");
+            console.log("Nouvelle image detectee. Stepper reinitialise a l'etape 0.");
         });
     }
 
-    // Sécurité anti-rechargement du formulaire de réglages
-    const wmForm = document.getElementById('form-watermark-data');
-    if (wmForm) wmForm.addEventListener('submit', (e) => e.preventDefault());
-
-    // =========================================================================
-    // FONCTION CENTRALISÉE D'ENVOI À FLASK (NON-BLOQUANTE VISUELLEMENT)
-    // =========================================================================
+    // ---------------------------------------------------------
+    //  Envoi d'une etape du pipeline a Flask
+    //  IMPORTANT : cet appel NE sauvegarde PAS en base de donnees.
+    //  La sauvegarde est faite par /api/upload (script.js, clic [Importer]).
+    // ---------------------------------------------------------
     function executerEtapePipeline(apiAction, nomEtapeAffichage, isNextClick = false) {
         if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
             alert("Veuillez d'abord importer une image via la zone [ + ].");
@@ -173,8 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('action', apiAction);
         formData.append('file', fileInput.files[0]);
-
-        // Récupération dynamique des réglages curseurs de l'IHM
         formData.append('wm_text', document.getElementById('watermark-msg')?.value || "© Cert-Art.fr");
         formData.append('wm_size', document.getElementById('watermark-taillep')?.value || "35");
         formData.append('wm_color', document.getElementById('watermark-couleur')?.value || "128,128,128");
@@ -183,101 +143,81 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('wm_spacing', document.getElementById('watermark-espace')?.value || "300");
         formData.append('stegano_message', document.getElementById('stegano-msg')?.value || "defaut");
 
-        // ⚡ RETOUR VISUEL IMMÉDIAT
-        if (btnExecute) btnExecute.innerText = "[⏳] Calcul...";
-        if (btnNext) btnNext.innerText = "[⏳] Calcul...";
+        if (btnExecute) btnExecute.innerText = "[...] Calcul...";
+        if (btnNext) btnNext.innerText = "[...] Calcul...";
 
-        console.log(`📡 [Étape ${currentCertifStep + 1}] Envoi de l'action : ${apiAction}`);
+        console.log(`[Etape ${currentCertifStep + 1}] Envoi de l'action : ${apiAction}`);
 
-        fetch('/api', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === "success") {
-                if (data.image_base64) {
-                    currentDownloadUrl = data.image_base64;
-                    if (dropZone) {
-                        dropZone.innerHTML = `<img src="${data.image_base64}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #ff9f00;">`;
+        fetch('/api', { method: 'POST', body: formData })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    if (data.image_base64) {
+                        currentDownloadUrl = data.image_base64;
+                        if (dropZone) {
+                            dropZone.innerHTML = `<img src="${data.image_base64}" style="width:100%;height:100%;object-fit:cover;border:2px solid #ff9f00;">`;
+                        }
                     }
+                    if (isNextClick) currentCertifStep++;
+                    alert(`Succes : ${nomEtapeAffichage} valide. Etape suivante prete.`);
+                } else {
+                    alert(`Erreur au cours de l'etape : ${data.message}`);
                 }
-                
-                // On passe officiellement à l'étape suivante si c'est le bouton Next
-                if (isNextClick) {
-                    currentCertifStep++;
-                }
-                alert(`Succès : ${nomEtapeAffichage} validé ! Étape suivante prête.`);
-            } else {
-                alert(`Erreur au cours de l'étape : ${data.message}`);
-            }
-
-            // 🔓 On rétablit les textes d'origine
-            if (btnNext) btnNext.innerText = "[N] Next ➔";
-            if (btnExecute) btnExecute.innerText = "[↵] Exécuter";
-        })
-        .catch(error => {
-            console.error("Erreur réseau :", error);
-            alert("Erreur de communication avec le serveur Flask.");
-            if (btnNext) btnNext.innerText = "[N] Next ➔";
-            if (btnExecute) btnExecute.innerText = "[↵] Exécuter";
-        });
+                if (btnNext) btnNext.innerText = "[N] Next ";
+                if (btnExecute) btnExecute.innerText = "[↵] Executer";
+            })
+            .catch(error => {
+                console.error("Erreur reseau :", error);
+                alert("Erreur de communication avec le serveur Flask.");
+                if (btnNext) btnNext.innerText = "[N] Next ";
+                if (btnExecute) btnExecute.innerText = "[↵] Executer";
+            });
     }
 
-    // =========================================================================
-    // GESTION DU SCRIPT DE NAVIGATION INTERNE DES ONGLETS CONSOLE
-    // =========================================================================
     function basculerVisualisationOnglet(nomOnglet, idConsole) {
         tabs.forEach(tab => tab.classList.toggle('active', tab.innerText.trim() === nomOnglet));
-        const consoles = ['console-watermark', 'console-exif', 'console-stegano', 'console-sign', 'console-block'];
-        consoles.forEach(id => {
+        ['console-watermark', 'console-exif', 'console-stegano', 'console-sign', 'console-block'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = (id === idConsole) ? 'block' : 'none';
         });
     }
 
-    // =========================================================================
-    // GESTION DU BOUTON NEXT ➔ (PIPELINE SÉQUENTIEL)
-    // =========================================================================
+    // ---------------------------------------------------------
+    //  Bouton [N] Next : pipeline sequentiel
+    // ---------------------------------------------------------
     if (btnNext) {
         btnNext.addEventListener('click', (e) => {
             e.preventDefault();
-            
             if (currentCertifStep === 0) {
                 basculerVisualisationOnglet("Watermark", "console-watermark");
-                executerEtapePipeline("visible", "Étape 1/5 : Filigrane Visible", true);
+                executerEtapePipeline("visible", "Etape 1/5 : Filigrane Visible", true);
             } else if (currentCertifStep === 1) {
                 basculerVisualisationOnglet("EXIF", "console-exif");
-                executerEtapePipeline("exif", "Étape 2/5 : Métadonnées EXIF", true);
+                executerEtapePipeline("exif", "Etape 2/5 : Metadonnees EXIF", true);
             } else if (currentCertifStep === 2) {
                 basculerVisualisationOnglet("Stegano", "console-stegano");
-                executerEtapePipeline("stegano", "Étape 3/5 : Filigrane Invisible (Stéganographie)", true);
+                executerEtapePipeline("stegano", "Etape 3/5 : Filigrane Invisible (Steganographie)", true);
             } else if (currentCertifStep === 3) {
                 basculerVisualisationOnglet("Signature Num.", "console-sign");
-                executerEtapePipeline("signature", "Étape 4/5 : Signature Numérique", true);
+                executerEtapePipeline("signature", "Etape 4/5 : Signature Numerique", true);
             } else if (currentCertifStep === 4) {
                 basculerVisualisationOnglet("Blockchain OTS", "console-block");
-                executerEtapePipeline("blockchain", "Étape 5/5 : Horodatage Blockchain OTS", true);
+                executerEtapePipeline("blockchain", "Etape 5/5 : Horodatage Blockchain OTS", true);
             } else {
-                alert("🎉 Certification 100% complète ! Vous pouvez exporter l'image définitive.");
+                alert("Certification 100% complete. Vous pouvez exporter l'image definitive.");
             }
         });
     }
 
-    // =========================================================================
-    // BOUTON CLASSIQUE EXÉCUTER [↵] (POUR LES ACTIONS UNITAIRES)
-    // =========================================================================
+    // ---------------------------------------------------------
+    //  Bouton [Exécuter] : action unitaire selon l'onglet actif
+    // ---------------------------------------------------------
     if (btnExecute) {
         btnExecute.style.cursor = 'pointer';
         btnExecute.addEventListener('click', (e) => {
             e.preventDefault();
             const activeTab = document.querySelector('.tab.active');
-            const tabName = activeTab ? activeTab.innerText.trim() : "Certif complète";
-
-            if (tabName === "Certif complète") {
-                alert("Pour la Certification Complète, veuillez utiliser le bouton 'Next ➔' juste à côté d'Exporter pour avancer pas à pas !");
-                return;
-            }
+            const tabName = activeTab ? activeTab.innerText.trim() : "";
 
             const actionMapping = {
                 "Watermark": "visible",
@@ -286,23 +226,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 "Signature Num.": "signature",
                 "Blockchain OTS": "blockchain"
             };
-            
             const singleAction = actionMapping[tabName];
             if (singleAction) {
                 executerEtapePipeline(singleAction, `Module individuel [${tabName}]`);
+            } else {
+                alert("Selectionnez un onglet de certification, ou utilisez [N] Next pour le pipeline complet.");
             }
         });
     }
 
-    // =========================================================================
-    // BOUTON EXPORTER [E]
-    // =========================================================================
+    // ---------------------------------------------------------
+    //  Bouton [E] Exporter
+    // ---------------------------------------------------------
     if (btnExport) {
         btnExport.style.cursor = 'pointer';
         btnExport.addEventListener('click', (e) => {
             e.preventDefault();
             if (!currentDownloadUrl) {
-                alert("Aucune image traitée disponible pour l'export.");
+                alert("Aucune image traitee disponible pour l'export.");
                 return;
             }
             const link = document.createElement('a');
@@ -314,57 +255,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // =========================================================================
-    // MODULE DE VÉRIFICATION AUTOMATIQUE (PANNEAU AUDIT TECHNIQUE)
-    // =========================================================================
+    // ---------------------------------------------------------
+    //  Zone VERIFICATION : lancement du rapport d'audit.
+    //  (apercu / import / annuler / drag&drop sont geres dans script.js)
+    // ---------------------------------------------------------
     const fileInputVerif = document.getElementById('file-upload-verif');
-    const btnImportVerif = document.getElementById('btn-import-verif');
-    const dropZoneVerif = document.getElementById('drop-zone-verif');
     const resultsContainer = document.getElementById('verif-results-container');
     const statusVerifText = document.getElementById('file-status-verif');
-
-    if (btnImportVerif) btnImportVerif.addEventListener('click', () => fileInputVerif.click());
-    if (dropZoneVerif) dropZoneVerif.addEventListener('click', () => fileInputVerif.click());
 
     if (fileInputVerif) {
         fileInputVerif.addEventListener('change', () => {
             if (fileInputVerif.files.length === 0) return;
-
             const file = fileInputVerif.files[0];
             if (statusVerifText) statusVerifText.innerText = "Analyse en cours...";
 
-            // Affichage instantané de l'aperçu de l'image à auditer
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                if (dropZoneVerif) {
-                    dropZoneVerif.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
-                }
-            };
-            reader.readAsDataURL(file);
-
-            // Préparation du colis d'audit pour Flask
             const formData = new FormData();
-            formData.append('action', 'report'); 
+            formData.append('action', 'report');
             formData.append('file', file);
 
-            fetch('/api', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (statusVerifText) statusVerifText.innerText = "Terminée";
-                
-                if (data.status === "success" && data.terminal_output) {
-                    resultsContainer.innerHTML = renderAuditReport(data.terminal_output);
-                } else {
-                    resultsContainer.innerHTML = `<p style="color: red; font-family: monospace;">Erreur lors de l'audit : ${escapeHtml(data.message || "Erreur inconnue")}</p>`;
-                }
-            })
-            .catch(err => {
-                if (statusVerifText) statusVerifText.innerText = "Échec connexion";
-                alert("Impossible de joindre le serveur Flask pour lancer le rapport d'audit.");
-            });
+            fetch('/api', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (statusVerifText) statusVerifText.innerText = "Terminee";
+                    if (data.status === "success" && data.terminal_output) {
+                        resultsContainer.innerHTML = renderAuditReport(data.terminal_output);
+                    } else {
+                        resultsContainer.innerHTML = `<p style="color:red;font-family:monospace;">Erreur lors de l'audit : ${escapeHtml(data.message || "Erreur inconnue")}</p>`;
+                    }
+                })
+                .catch(() => {
+                    if (statusVerifText) statusVerifText.innerText = "Echec connexion";
+                    alert("Impossible de joindre le serveur Flask pour lancer le rapport d'audit.");
+                });
         });
     }
 });

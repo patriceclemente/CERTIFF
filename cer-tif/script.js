@@ -1,5 +1,12 @@
+function glitcherElement(element, intensity) {
+                    if (!element) return; 
+                    const mot = element.innerText.trim();
+                    element.style.opacity = '0.4';
+                    element.style.pointerEvents = 'none';            // non cliquable
+                    setInterval(() => { element.innerText = Dinguerie(mot, intensity); }, 80);
+                }
+
 function Dinguerie(cible, intensity) {
-    // Implementation for Dinguerie function
     const n = cible.length;
     const lettres = '0123456789&@#%$%$£éàçΩωΦβΨΛζλΔδΘθηçΩωΦβΨΛαλΔδΘθηΓγ';
     // on part du mot d'origine, lettre par lettre
@@ -10,64 +17,18 @@ function Dinguerie(cible, intensity) {
         const p = Math.floor(Math.random() * n);
         if (!positions.includes(p)) positions.push(p);   // pas deux fois la même
     }
-
     // on remplace ces positions par un caractère aléatoire
     for (const p of positions) {
         chars[p] = lettres[Math.floor(Math.random() * lettres.length)];
     }
     return chars.join('');
-                   
 }
 
 function griser(btn) {
-    if (!btn) return;                    
-    btn.style.opacity = '0.4';   
-    btn.style.pointerEvents = 'none'; 
+    if (!btn) return;
+    btn.style.opacity = '0.4';
+    btn.style.pointerEvents = 'none';
 }
-
-/*function chargerHistorique() {
-    const container = document.getElementById('historique-container');
-    container.innerHTML = '> Chargement...';
-
-    fetch('/api/historique')
-        .then(r => r.json())
-        .then(data => {
-            if (!data.ok) {
-                container.innerHTML = '> Connecte-toi pour voir ton historique.';
-                return;
-            }
-            if (data.depots.length === 0) {
-                container.innerHTML = '> Aucun dépôt pour le moment.';
-                return;
-            }
-
-            container.innerHTML = '';
-            data.depots.forEach(depot => {
-                // taille en Ko, arrondie
-                const tailleKo = (depot.taille / 1024).toFixed(1);
-
-                const ligne = document.createElement('div');
-                ligne.className = 'console-panel';
-                ligne.style.marginBottom = '10px';
-                ligne.innerHTML = `
-                    <div class="console-header">
-                        <span>// ${depot.nom_fichier}</span>
-                        <span>${depot.date_depot}</span>
-                    </div>
-                    <div style="padding-top:8px; opacity:0.8;">
-                        > Taille : ${tailleKo} Ko<br>
-                        > Hash : ${depot.hash_fichier.substring(0, 16)}...
-                    </div>
-                `;
-                container.appendChild(ligne);
-            });
-        })
-        .catch(err => {
-            container.innerHTML = '> Erreur de chargement.';
-            console.error('Erreur historique :', err);
-        });
-}
-*/
 
 function chargerHistorique() {
     const container = document.getElementById('historique-container');
@@ -90,11 +51,11 @@ function chargerHistorique() {
             data.depots.forEach(depot => {
                 const tile = document.createElement('div');
                 tile.className = 'histo-tile';
-                
+
                 // ATTENTION: Il faudra que API Python renvoie un lien vers l'image 
                 // Ex: depot.url_image (base64 ou lien /static/uploads/...)
                 // Si l'URL n'est pas encore gérée côté Python, ça affichera une image vide.
-                const imgSrc = depot.url_image || ''; 
+                const imgSrc = depot.url_image || '';
 
                 tile.innerHTML = `
                     <img src="${imgSrc}" alt="aperçu">
@@ -121,14 +82,12 @@ function afficherDetailsHisto(depot, imgSrc) {
     const modalFilename = document.getElementById('modal-filename');
     const modalImg = document.getElementById('modal-img');
     const modalDetails = document.getElementById('modal-details');
-
     if (!modal) return;
 
     const tailleKo = (depot.taille / 1024).toFixed(1);
-
     modalFilename.innerText = `// ${depot.nom_fichier}`;
     modalImg.src = imgSrc;
-    
+
     // Injecte les détails avec l'esthétique "default settings"
     modalDetails.innerHTML = `
         <p>// Détails d'intégrité :</p>
@@ -146,31 +105,11 @@ function afficherDetailsHisto(depot, imgSrc) {
     modal.style.display = 'flex';
 
     // Bouton pour fermer
-    document.getElementById('modal-close').onclick = () => {
-        modal.style.display = 'none';
-    };
+    document.getElementById('modal-close').onclick = () => { modal.style.display = 'none'; };
 }
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // document.addEventListener('DOMContentLoaded', () => {
-    
-    // // --- BOUCLIER ANTI DOUBLE-FENÊTRE (Patch Anti-Conflit) ---
-    // document.querySelectorAll('input[type="file"]').forEach(input => {
-    //     const originalClick = input.click;
-    //     input.click = function() {
-    //         if (this.isLocked) return; // Si la fenêtre s'ouvre déjà, on bloque les autres ordres
-    //         this.isLocked = true;
-    //         originalClick.apply(this);
-            
-    //         // On déverrouille après 1 seconde (pour permettre de re-cliquer plus tard)
-    //         setTimeout(() => { this.isLocked = false; }, 1000); 
-    //     };
-    // });
-
-    // // Déconnexion 
-    // const btnLogout = document.getElementById('btn-logout');
-    
     // Déconnexion 
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
@@ -178,11 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnLogout.addEventListener('click', () => {
             fetch('/api/deconnexion', { method: 'POST' })
                 .then(r => r.json())
-                .then(data => {
-                    if (data.ok) {
-                        window.location.href = '/index.html';   // retour à la page de login
-                    }
-                })
+                .then(data => { if (data.ok) window.location.href = '/index.html'; })
                 .catch(err => console.error('Erreur déconnexion :', err));
         });
     }
@@ -191,43 +126,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnLoginIcon = document.getElementById('btn-login');
     if (btnLoginIcon) {
         btnLoginIcon.style.cursor = 'pointer';
-        btnLoginIcon.addEventListener('click', () => {
-            window.location.href = '/';   // la racine sert login.html
-        });
+        btnLoginIcon.addEventListener('click', () => { window.location.href = '/'; });
     }
-    
+
     // Gestion de la navigation latérale
     const navItems = document.querySelectorAll('.nav-item');
-    
+    const panelCertif = document.getElementById('panel-certification');
+    const panelVerif = document.getElementById('panel-verification');
+    const panelHisto = document.getElementById('panel-historique');
+
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
-            
+
             // Retire la classe 'active' de tous les éléments
             navItems.forEach(nav => nav.classList.remove('active'));
-            
+
             // Ajoute la classe 'active' à l'élément cliqué
-            e.target.classList.add('active');
+            item.classList.add('active');
+            const cible = item.innerText.trim();
 
-            const panelCertif = document.getElementById('panel-certification');
-            const panelVerif = document.getElementById('panel-verification');
-            const panelHisto = document.getElementById('panel-historique');
-            const targetMenu = e.target.innerText.trim();
+            if (panelCertif) panelCertif.style.display = (cible === "Certification") ? "block" : "none";
+            if (panelVerif)  panelVerif.style.display  = (cible === "Vérification") ? "block" : "none";
+            if (panelHisto)  panelHisto.style.display  = (cible === "Historique") ? "block" : "none";
 
-            if (targetMenu === "Vérification") {
-                if(panelCertif) panelCertif.style.display = "none";
-                if(panelVerif) panelVerif.style.display = "block";
-                if(panelHisto) panelHisto.style.display = "none";
-            } else if (targetMenu === "Certification") {
-                if(panelVerif) panelVerif.style.display = "none";
-                if(panelCertif) panelCertif.style.display = "block";
-                if(panelHisto) panelHisto.style.display = "none";
-            } else if (targetMenu === "Historique") {
-                if(panelCertif) panelCertif.style.display = "none";
-                if(panelVerif) panelVerif.style.display = "none";
-                if(panelHisto) panelHisto.style.display = "block";
-                chargerHistorique();
-            }
+            if (cible === "Historique") chargerHistorique();
         });
     });
 
@@ -236,179 +159,187 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileStatus = document.querySelector('.details h3 .highlight');
     const btnImport = document.getElementById('btn-import');
 
-    dropZone.addEventListener('click', () => fileInput.click());
-    if(btnImport){
-        btnImport.addEventListener('click', () => fileInput.click());
+    // Variable globale pour stocker tous les fichiers du lot + état de connexion
+    let selectedFiles = [];
+    let estConnecte = false;
+
+    function afficherApercu(files, zone) {
+        if (!zone || !files.length) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            let html = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+            if (files.length > 1) {
+                html += `<div style="position:absolute;bottom:5px;right:5px;background:var(--text-color);color:var(--bg-color);padding:2px 6px;font-weight:bold;border:1px solid var(--bg-color);">+${files.length - 1}</div>`;
+            }
+            zone.style.position = "relative";
+            zone.innerHTML = html;
+            zone.style.border = "none";
+        };
+        // On lit uniquement le premier fichier pour la miniature
+        reader.readAsDataURL(files[0]);
     }
 
-    // affichage username
-    
-    fetch('/api/me')
-    .then(response => response.json())
-    .then(data => {
-        const usernameDiv = document.getElementById('username');
-        if (data.ok) {
-            usernameDiv.innerText = data.username;
-            griser(btnLoginIcon)
-        } else {
-            griser(btnLogout)
-            setInterval(() => {
-            usernameDiv.innerText = Dinguerie('NOT_FOUND', 4);
-            }, 60);   // rythme (ms)
-           // INVITÉ : masquer l'onglet Vérification et Historique (sidebar) 
-           //a securisé quand on connectera l'api avec les fonctionnalités bloquées
-           function glitcherElement(element,intensity) {
-                const mot = element.innerText.trim();   // on mémorise le vrai mot
-                element.style.opacity = '0.4';
-                element.style.pointerEvents = 'none';            // non cliquable
-                setInterval(() => {
-                    element.innerText = Dinguerie(mot, intensity);
-                }, 80);
-            }
-            // --- onglets sidebar bloqués ---
-            document.querySelectorAll('.nav-item').forEach(item => {
-                const txt = item.innerText.trim();
-                if (txt === 'Historique') {
-                    glitcherElement(item, 4);
-                }
-            });
-
-            // --- onglet Blockchain OTS bloqué ---
-            document.querySelectorAll('.tab').forEach(tab => {
-                if (tab.innerText.trim() === 'Blockchain OTS') {
-                    glitcherElement(tab, 4);
-                }
-            });
-        }
-    })
-    .catch(err => {
-        console.error('Impossible de récupérer l\'utilisateur :', err);
-    });
-
-    // Variable globale pour stocker tous les fichiers du lot
-    let selectedFiles = [];
-
-    // --- Gestion du choix des fichiers ---
-    fileInput.addEventListener('change', function(){
-        if (this.files && this.files.length > 0) {
-            // On convertit les fichiers en tableau pour faciliter l'envoi futur au Python
-            selectedFiles = Array.from(this.files);
-            
-            // Mise à jour du texte à droite
-            if (selectedFiles.length === 1) {
-                fileStatus.innerText = selectedFiles[0].name;
-            } else {
-                fileStatus.innerText = `[${selectedFiles.length} FICHIERS ]`;
-            }
-            
-            // Affichage de la miniature du premier fichier
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                // Création de l'image
-                let htmlContent = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
-                
-                // Si plusieurs fichiers, on ajoute un badge rétro par-dessus
-                if (selectedFiles.length > 1) {
-                    const extraCount = selectedFiles.length - 1;
-                    htmlContent += `
-                        <div style="position: absolute; bottom: 5px; right: 5px; background: var(--text-color); color: var(--bg-color); padding: 2px 6px; font-weight: bold; border: 1px solid var(--bg-color);">
-                            +${extraCount}
-                        </div>
-                    `;
-                }
-                
-                dropZone.style.position = "relative"; // Nécessaire pour le badge absolu
-                dropZone.innerHTML = htmlContent;
-                dropZone.style.border = "none";
-            }
-            // On lit uniquement le premier fichier pour la miniature
-            reader.readAsDataURL(selectedFiles[0]);
-            //enregistrer chaque fichier déposé en base ---
-            selectedFiles.forEach(file => {
-                const formData = new FormData();
-                formData.append('file', file);
-
-                fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                })
+    //enregistrer chaque fichier déposé en base ---
+    function enregistrerDepots(files) {
+        files.forEach(file => {
+            const formData = new FormData();
+            formData.append('file', file);
+            fetch('/api/upload', { method: 'POST', body: formData })
                 .then(r => r.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        console.log(`Dépôt enregistré : ${file.name} (id=${data.depot_id})`);
+                        if (data.depot_id) {
+                            console.log(`Dépôt enregistré : ${file.name} (id=${data.depot_id})`);
+                            if (fileStatus) fileStatus.innerText = `${file.name} (sauvegardé)`;
+                        } else {
+                            console.warn(`${file.name} non sauvegardé (invité non connecté).`);
+                        }
                     } else {
                         console.error(`Erreur dépôt ${file.name} :`, data.message);
+                        if (fileStatus) fileStatus.innerText = `ERREUR: ${data.message}`;
                     }
                 })
-                .catch(err => console.error(`Erreur réseau dépôt ${file.name} :`, err));
-            });
-        }
-    });
+                .catch(err => console.error(`Erreur réseau ${file.name} :`, err));
+        });
+    }
+
+    // [Soumettre] : enregistre le dépôt en base, uniquement si connecté.
+    // N'ouvre PLUS l'explorateur (le dépôt se fait par la zone [ + ] ou le drag&drop).
+    if (btnImport) {
+        btnImport.addEventListener('click', () => {
+            if (!estConnecte) return;                 // invité : pas de sauvegarde
+            if (selectedFiles.length === 0) {
+                if (fileStatus) fileStatus.innerText = "Dépose d'abord une image.";
+                return;
+            }
+            enregistrerDepots(selectedFiles);
+        });
+    }
+
+    // Clic sur la zone -> ouvre l'explorateur (dépôt + aperçu)
+    if (dropZone) {
+        dropZone.addEventListener('click', () => fileInput.click());
+    }
+
+    // --- Gestion du choix des fichiers --- (aperçu seulement)
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            if (!this.files || this.files.length === 0) return;
+            selectedFiles = Array.from(this.files);
+
+            if (fileStatus) {
+                fileStatus.innerText = selectedFiles.length === 1
+                    ? selectedFiles[0].name
+                    : `[${selectedFiles.length} FICHIERS ]`;
+            }
+
+            afficherApercu(selectedFiles, dropZone);
+        });
+    }
 
     //drag and drop
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.style.backgroundColor = 'var(--text-color)';
-        dropZone.style.color = 'var(--bg-color)';
-    })
-
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.style.backgroundColor = '';
-        dropZone.style.color = '';
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.style.backgroundColor = '';
-        dropZone.style.color = '';
-        
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            fileInput.dispatchEvent(new Event('change')); // Déclenche le code au-dessus
-        }
-    });
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.backgroundColor = 'var(--text-color)';
+            dropZone.style.color = 'var(--bg-color)';
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.backgroundColor = '';
+            dropZone.style.color = '';
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.backgroundColor = '';
+            dropZone.style.color = '';
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change')); // Déclenche le code au-dessus
+            }
+        });
+    }
 
     // --- Gestion du bouton Annuler ---
     const btnCancel = document.getElementById('btn-cancel');
-
-    if(btnCancel){
-        btnCancel.addEventListener('click', () =>{
+    if (btnCancel) {
+        btnCancel.addEventListener('click', () => {
             // On vide notre tableau
             selectedFiles = [];
-            
+
             // On réinitialise l'interface
-            dropZone.innerHTML = `
-                <div class="placeholder-art">
-                    <br>
-                    <p id="depot">[ + ]</p><br>
-                </div>
-            `;
+            dropZone.innerHTML = `<div class="placeholder-art"><br><p id="depot_certif">[ + ]</p><br></div>`;
             dropZone.style.border = "";
-            fileStatus.innerText = "en attente...";
+            if (fileStatus) fileStatus.innerText = "en attente...";
             fileInput.value = "";
         });
     }
 
+    // affichage username
+    fetch('/api/me')
+        .then(response => response.json())
+        .then(data => {
+            
+            const usernameDiv = document.getElementById('username');
+            if (data.ok) {
+                usernameDiv.innerText = data.username;
+                estConnecte = true;
+                griser(btnLoginIcon);
+            } else {
+                estConnecte = false;
+                griser(btnLogout);
+                glitcherElement(btnImport,2); 
+                glitcherElement(btnImportVerif, 2);
+                setInterval(() => {
+                    usernameDiv.innerText = Dinguerie('NOT_FOUND', 4);
+                }, 60);   // rythme (ms)
+                // INVITÉ : masquer l'onglet Vérification et Historique (sidebar) 
+                //a securisé quand on connectera l'api avec les fonctionnalités bloquées
+                
+                // --- onglets sidebar bloqués ---
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    if (item.innerText.trim() === 'Historique') glitcherElement(item, 4);
+                });
+
+                // --- onglet Blockchain OTS bloqué ---
+                document.querySelectorAll('.tab').forEach(tab => {
+                    if (tab.innerText.trim() === 'Blockchain OTS') glitcherElement(tab, 4);
+                });
+            }
+        })
+        .catch(err => console.error('Impossible de récupérer l\'utilisateur :', err));
+
     //gestion des onglets 
     const tabs = document.querySelectorAll('.tab');
     const consoleHeaderTitle = document.querySelector('.console-header span:first-child');
+    const consoleHeader = document.querySelector('.console-header');
+    const consoleFooter = document.querySelector('.console-footer');
+    const actionButtons = document.getElementById('action-buttons');
+    const btnExport = document.querySelector('.console-tags .tag');
+    const btnNextBlock = document.getElementById('btn-next');
 
     //dico
     const tabExplanations = {
-        "" : "[CHOISIR UN MODE CERTIFICATION] : Vous pouvez effectuer les certifications séparémment et exporter dès que besoin.",
-        "Watermark" : "[MODE : WARTERMARK] Incrustation d'un filigrane visible.",
-        "EXIF" : "[MODE : EXIF] Injection de métadonnées d'identification.",
-        "Stegano" : "[MODE : STEGANO] Insertion de métadonnées invisibles.",
-        "Signature Num." : "[MODE : SIGNATURE] Chiffrement asymétrique pour authentification d'identité.",
-        "Blockchain OTS" : "[MODE : BLOCKCHAIN] Horodatage et preuve."
-    }
+        "": "[CHOISIR UN MODE CERTIFICATION] : Vous pouvez effectuer les certifications séparémment et exporter dès que besoin.",
+        "Watermark": "[MODE : WARTERMARK] Incrustation d'un filigrane visible.",
+        "EXIF": "[MODE : EXIF] Injection de métadonnées d'identification.",
+        "Stegano": "[MODE : STEGANO] Insertion de métadonnées invisibles.",
+        "Signature Num.": "[MODE : SIGNATURE] Chiffrement asymétrique pour authentification d'identité.",
+        "Blockchain OTS": "[MODE : BLOCKCHAIN] Horodatage et preuve."
+    };
 
-    if(consoleHeaderTitle){
+    const tabConsoleMap = {
+        "Watermark":      { console: "console-watermark", focus: "watermark-msg" },
+        "EXIF":           { console: "console-exif",      focus: "exif-auteur" },
+        "Stegano":        { console: "console-stegano",   focus: "stegano-msg" },
+        "Signature Num.": { console: "console-sign",      focus: "sign-mdp" },
+        "Blockchain OTS": { console: "console-block",     focus: null }
+    };
+    const allConsoles = ["console-watermark", "console-exif", "console-stegano", "console-sign", "console-block"];
+
+    if (consoleHeaderTitle) {
         consoleHeaderTitle.innerText = tabExplanations[""];
-        
+
         // --- MASQUER LES LIGNES ET LE BOUTON EXÉCUTER AU CHARGEMENT ---
-        const consoleHeader = document.querySelector('.console-header');
-        const consoleFooter = document.querySelector('.console-footer');
         if (consoleHeader) consoleHeader.style.borderBottom = "none";
         if (consoleFooter) consoleFooter.style.display = "none";
     }
@@ -417,237 +348,47 @@ document.addEventListener('DOMContentLoaded', () => {
         tab.addEventListener('click', (e) => {
             e.preventDefault();
             tabs.forEach(t => t.classList.remove('active'));
-            e.target.classList.add('active');
+            tab.classList.add('active');
+            const tabName = tab.innerText.trim();
 
-            const tabName = e.target.innerText.trim();
-            if (tabExplanations[tabName]){
+            if (tabExplanations[tabName] && consoleHeaderTitle) {
                 consoleHeaderTitle.innerText = tabExplanations[tabName];
             }
 
-            const actionButtons = document.getElementById('action-buttons');
+            const mapping = tabConsoleMap[tabName];
+            allConsoles.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = (mapping && id === mapping.console) ? "block" : "none";
+            });
+            if (mapping && mapping.focus) {
+                const f = document.getElementById(mapping.focus);
+                if (f) f.focus();
+            }
+
             if (actionButtons) actionButtons.style.display = 'flex';
 
             // --- RÉAFFICHER LES LIGNES ET LE BOUTON EXÉCUTER ---
-            const consoleHeader = document.querySelector('.console-header');
-            const consoleFooter = document.querySelector('.console-footer');
             if (consoleHeader) consoleHeader.style.borderBottom = "1px dashed var(--border-color)";
             if (consoleFooter) consoleFooter.style.display = "flex";
-        })
-    })
 
-    // --- 3. LOGIQUE D'UPLOAD : ZONE VÉRIFICATION ---
-    const dropZoneVerif = document.getElementById('drop-zone-verif');
-    const fileInputVerif = document.getElementById('file-upload-verif');
-    const fileStatusVerif = document.getElementById('file-status-verif');
-    const btnImportVerif = document.getElementById('btn-import-verif');
-    const btnCancelVerif = document.getElementById('btn-cancel-verif');
-    let selectedFilesVerif = [];
-
-    dropZoneVerif.addEventListener('click', () => fileInputVerif.click());
-    if(btnImportVerif) btnImportVerif.addEventListener('click', () => fileInputVerif.click());
-
-    fileInputVerif.addEventListener('change', function(){
-        if (this.files && this.files.length > 0) {
-            selectedFilesVerif = Array.from(this.files);
-            fileStatusVerif.innerText = selectedFilesVerif.length === 1 ? selectedFilesVerif[0].name : `[${selectedFilesVerif.length} FICHIERS ]`;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                let htmlContent = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
-                if (selectedFilesVerif.length > 1) {
-                    htmlContent += `<div style="position: absolute; bottom: 5px; right: 5px; background: var(--text-color); color: var(--bg-color); padding: 2px 6px; font-weight: bold; border: 1px solid var(--bg-color);">+${selectedFilesVerif.length - 1}</div>`;
-                }
-                dropZoneVerif.style.position = "relative";
-                dropZoneVerif.innerHTML = htmlContent;
-                dropZoneVerif.style.border = "none";
-            }
-            reader.readAsDataURL(selectedFilesVerif[0]);
-        }
-    });
-
-    dropZoneVerif.addEventListener('dragover', (e) => { e.preventDefault(); dropZoneVerif.style.backgroundColor = 'var(--text-color)'; dropZoneVerif.style.color = 'var(--bg-color)'; });
-    dropZoneVerif.addEventListener('dragleave', () => { dropZoneVerif.style.backgroundColor = ''; dropZoneVerif.style.color = ''; });
-    dropZoneVerif.addEventListener('drop', (e) => {
-        e.preventDefault(); dropZoneVerif.style.backgroundColor = ''; dropZoneVerif.style.color = '';
-        if (e.dataTransfer.files.length) { fileInputVerif.files = e.dataTransfer.files; fileInputVerif.dispatchEvent(new Event('change')); }
-    });
-
-    if(btnCancelVerif){
-        btnCancelVerif.addEventListener('click', () =>{
-            selectedFilesVerif = [];
-            dropZoneVerif.innerHTML = `<div class="placeholder-art"><br><p id="depot">[ ? ]</p><br></div>`;
-            dropZoneVerif.style.border = "";
-            fileStatusVerif.innerText = "en attente...";
-            fileInputVerif.value = "";
-            const verifContainer = document.getElementById('verif-results-container');
-            if (verifContainer) verifContainer.innerHTML = '';
-            // Recache le bouton d'export EXIF
-            const exifAction = document.getElementById('exif-action-container');
-            if (exifAction) exifAction.style.display = 'none';
-        });
-    }
-
-    if(consoleHeaderTitle){
-        consoleHeaderTitle.innerText = tabExplanations[""];
-    }
-
-    /*===========TAB WATEMARK=============*/
-    
-    const consoleWatermark = document.getElementById('console-watermark');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.preventDefault();
-            tabs.forEach(t => t.classList.remove('active'));
-            e.target.classList.add('active');
-
-            const tabName = e.target.innerText.trim();
-            if (tabExplanations[tabName]){
-                consoleHeaderTitle.innerText = tabExplanations[tabName];
-            }
-
-            if(consoleWatermark){
-                if(tabName === "Watermark"){
-                    consoleWatermark.style.display = "block";
-                    const firstInput = document.getElementById('watermark-msg');
-                    if(firstInput) firstInput.focus();
-                }
-                else {
-                    consoleWatermark.style.display = "none";
-                }
-            }
-        });
-    });
-
-    /*===========TAB EXIF=============*/
-
-    const consoleExif = document.getElementById('console-exif');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.preventDefault();
-            tabs.forEach(t => t.classList.remove('active'));
-            e.target.classList.add('active');
-
-            const tabName = e.target.innerText.trim();
-            if (tabExplanations[tabName]){
-                consoleHeaderTitle.innerText = tabExplanations[tabName];
-            }
-
-            if(consoleExif){
-                if(tabName === "EXIF"){
-                    consoleExif.style.display = "block";
-                    const firstInput = document.getElementById('exif-auteur');
-                    if(firstInput) firstInput.focus();
-                }
-                else {
-                    consoleExif.style.display = "none";
-                }
-            }
-        });
-    });
-
-
-    /*===========TAB STEGANO=============*/
-    
-    const consoleStegano = document.getElementById('console-stegano');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.preventDefault();
-            tabs.forEach(t => t.classList.remove('active'));
-            e.target.classList.add('active');
-
-            const tabName = e.target.innerText.trim();
-            if (tabExplanations[tabName]){
-                consoleHeaderTitle.innerText = tabExplanations[tabName];
-            }
-
-            if(consoleStegano){
-                if(tabName === "Stegano"){
-                    consoleStegano.style.display = "block";
-                    const firstInput = document.getElementById('stegano-msg');
-                    if(firstInput) firstInput.focus();
-                }
-                else {
-                    consoleStegano.style.display = "none";
-                }
-            }
-        });
-    });
-
-    /*===========TAB SIGNATURE=============*/
-
-    const consoleSign = document.getElementById('console-sign');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.preventDefault();
-            tabs.forEach(t => t.classList.remove('active'));
-            e.target.classList.add('active');
-
-            const tabName = e.target.innerText.trim();
-            if (tabExplanations[tabName]){
-                consoleHeaderTitle.innerText = tabExplanations[tabName];
-            }
-
-            if(consoleSign){
-                if(tabName === "Signature Num."){
-                    consoleSign.style.display = "block";
-                    const firstInput = document.getElementById('sign-mdp');
-                    if(firstInput) firstInput.focus();
-                }
-                else {
-                    consoleSign.style.display = "none";
-                }
-            }
-        });
-    });
-
-    /*===========TAB BLOCKCHAIN=============*/
-
-    const consoleBlock = document.getElementById('console-block');
-    const btnExport = document.querySelector('.console-tags .tag');
-    const btnNextBlock = document.getElementById('btn-next');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.preventDefault();
-            tabs.forEach(t => t.classList.remove('active'));
-            e.target.classList.add('active');
-
-            const tabName = e.target.innerText.trim();
-            if (tabExplanations[tabName]){
-                consoleHeaderTitle.innerText = tabExplanations[tabName];
-            }
-
-            if(consoleBlock){
-                if(tabName === "Blockchain OTS"){
-                    consoleBlock.style.display = "block";
-                    if(btnExport) btnExport.innerText = "[+] Envoyer vers la Blockchain";
-                    if(btnNextBlock) btnNextBlock.style.display = "none";
-                }
-                else {
-                    consoleBlock.style.display = "none";
-                    if(btnExport) btnExport.innerText = "[E] Exporter";
-                    if(btnNextBlock) btnNextBlock.style.display = "inline-block";
-                }
+            if (tabName === "Blockchain OTS") {
+                if (btnExport) btnExport.innerText = "[+] Envoyer vers la Blockchain";
+                if (btnNextBlock) btnNextBlock.style.display = "none";
+            } else {
+                if (btnExport) btnExport.innerText = "[E] Exporter";
+                if (btnNextBlock) btnNextBlock.style.display = "inline-block";
             }
         });
     });
 
     // --- L'effet miroir pour TOUS les curseurs du terminal ---
-    const hiddenInputs = document.querySelectorAll('.hidden-terminal-input');
-
-    hiddenInputs.forEach(input => {
+    document.querySelectorAll('.hidden-terminal-input').forEach(input => {
         // On cherche automatiquement le miroir qui correspond à l'ID de l'input
         const mirror = document.getElementById(input.id + '-mirror');
 
         if (mirror) {
-            input.addEventListener('input', (e) => {
-                // Recopie instantanément le texte tapé
-                mirror.textContent = e.target.value;
-            });
+            // Recopie instantanément le texte tapé
+            input.addEventListener('input', (e) => { mirror.textContent = e.target.value; });
         }
     });
 
@@ -664,135 +405,86 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // 2. Fermer le menu si on clique n'importe où ailleurs sur la page
-        document.addEventListener('click', () => {
-            themeMenu.style.display = 'none';
-        });
+        document.addEventListener('click', () => { themeMenu.style.display = 'none'; });
 
         // 3. Empêcher la fermeture si on clique à l'intérieur du menu
-        themeMenu.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
+        themeMenu.addEventListener('click', (e) => e.stopPropagation());
 
         // 4. Appliquer le thème choisi
         themeBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 // Nettoyer les anciens thèmes
                 document.body.classList.remove('theme-blue', 'theme-beige', 'theme-grey');
-                
+
                 // Ajouter le nouveau (sauf si on retourne au défaut)
                 const selectedTheme = btn.getAttribute('data-theme');
-                if (selectedTheme !== 'theme-default') {
-                    document.body.classList.add(selectedTheme);
-                }
+                if (selectedTheme !== 'theme-default') document.body.classList.add(selectedTheme);
 
                 // --- AJOUT : METTRE À JOUR LE FAVICON ---
                 const favicon = document.getElementById('dynamic-favicon');
                 if (favicon) {
                     if (selectedTheme === 'theme-default') favicon.href = 'icons/icon-amber.png';
-                    if (selectedTheme === 'theme-blue') favicon.href = 'icons/icon-blue.png';
-                    if (selectedTheme === 'theme-beige') favicon.href = 'icons/icon-beige.png';
-                    if (selectedTheme === 'theme-grey') favicon.href = 'icons/icon-grey.png';
+                    if (selectedTheme === 'theme-blue')    favicon.href = 'icons/icon-blue.png';
+                    if (selectedTheme === 'theme-beige')   favicon.href = 'icons/icon-beige.png';
+                    if (selectedTheme === 'theme-grey')    favicon.href = 'icons/icon-grey.png';
                 }
-                
+
                 // Fermer le menu
                 themeMenu.style.display = 'none';
             });
         });
     }
 
-    // --- GESTION DU BOUTON NEXT ---
-    const btnNext = document.getElementById('btn-next');
-    
-    if (btnNext) {
-        btnNext.addEventListener('click', (e) => {
+    // --- 3. LOGIQUE D'UPLOAD : ZONE VÉRIFICATION ---
+    const dropZoneVerif = document.getElementById('drop-zone-verif');
+    const fileInputVerif = document.getElementById('file-upload-verif');
+    const fileStatusVerif = document.getElementById('file-status-verif');
+    const btnImportVerif = document.getElementById('btn-import-verif');
+    const btnCancelVerif = document.getElementById('btn-cancel-verif');
+
+    if (btnImportVerif) btnImportVerif.addEventListener('click', () => fileInputVerif.click());
+    if (dropZoneVerif)  dropZoneVerif.addEventListener('click', () => fileInputVerif.click());
+
+    if (fileInputVerif) {
+        fileInputVerif.addEventListener('change', function () {
+            if (!this.files || this.files.length === 0) return;
+            const files = Array.from(this.files);
+            if (fileStatusVerif) {
+                fileStatusVerif.innerText = files.length === 1 ? files[0].name : `[${files.length} FICHIERS ]`;
+            }
+            afficherApercu(files, dropZoneVerif);
+        });
+    }
+
+    if (dropZoneVerif) {
+        dropZoneVerif.addEventListener('dragover', (e) => {
             e.preventDefault();
-            
-            // 1. Trouver l'onglet actuellement actif
-            const activeTab = document.querySelector('.tab.active');
-            const tabsArray = Array.from(tabs); // Transforme la NodeList en vrai tableau
-            
-            if (activeTab) {
-                // 2. Trouver sa position (son index)
-                const currentIndex = tabsArray.indexOf(activeTab);
-                
-                // 3. S'il y a un onglet après celui-ci, on simule un clic dessus !
-                if (currentIndex < tabsArray.length - 1) {
-                    tabsArray[currentIndex + 1].click();
-                }
-            } else {
-                // Si aucun onglet n'est actif par défaut, on active le tout premier
-                if (tabsArray.length > 0) {
-                    tabsArray[0].click();
-                }
+            dropZoneVerif.style.backgroundColor = 'var(--text-color)';
+            dropZoneVerif.style.color = 'var(--bg-color)';
+        });
+        dropZoneVerif.addEventListener('dragleave', () => {
+            dropZoneVerif.style.backgroundColor = '';
+            dropZoneVerif.style.color = '';
+        });
+        dropZoneVerif.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZoneVerif.style.backgroundColor = '';
+            dropZoneVerif.style.color = '';
+            if (e.dataTransfer.files.length) {
+                fileInputVerif.files = e.dataTransfer.files;
+                fileInputVerif.dispatchEvent(new Event('change'));
             }
         });
     }
-    
-    fileInputVerif.addEventListener('change', function(){
-        const verifContainer = document.getElementById('verif-results-container');
-        
-        if (this.files && this.files.length > 0) {
-            selectedFilesVerif = Array.from(this.files);
-            fileStatusVerif.innerText = selectedFilesVerif.length === 1 ? selectedFilesVerif[0].name : `[${selectedFilesVerif.length} FICHIERS ]`;
-            
-            // Miniature du premier fichier
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                let htmlContent = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
-                if (selectedFilesVerif.length > 1) {
-                    htmlContent += `<div style="position: absolute; bottom: 5px; right: 5px; background: var(--text-color); color: var(--bg-color); padding: 2px 6px; font-weight: bold; border: 1px solid var(--bg-color);">+${selectedFilesVerif.length - 1}</div>`;
-                }
-                dropZoneVerif.style.position = "relative";
-                dropZoneVerif.innerHTML = htmlContent;
-                dropZoneVerif.style.border = "none";
-            }
-            reader.readAsDataURL(selectedFilesVerif[0]);
 
-            // --- NOUVEAU : GÉNÉRATION DES BLOCS DE VÉRIFICATION ---
-            if (verifContainer) {
-                verifContainer.innerHTML = ''; // On nettoie les anciens rapports
-
-                // Rend le bouton d'export EXIF visible
-                const exifAction = document.getElementById('exif-action-container');
-                if (exifAction) exifAction.style.display = 'block';
-                
-                selectedFilesVerif.forEach((file, index) => {
-                    // On crée une div "console-panel" pour chaque fichier
-                    const fileBlock = document.createElement('div');
-                    fileBlock.className = 'console-panel verif-file-block';
-                    
-                    // On y injecte le HTML avec des IDs indexés (0, 1, 2...)
-                    fileBlock.innerHTML = `
-                        <div class="console-header">
-                            <span>// FICHIER : ${file.name}</span>
-                            <span class="verif-result verif-global" id="verif-global-${index}">[ ... ]</span>
-                        </div>
-                        <div class="console-body">
-                            <div class="verif-grid">
-                                <div class="verif-item">
-                                    <span class="verif-label">> Filigrane (Watermark)</span>
-                                    <span class="verif-result" id="res-watermark-${index}">...</span>
-                                </div>
-                                <div class="verif-item">
-                                    <span class="verif-label">> Métadonnées (EXIF)</span>
-                                    <span class="verif-result" id="res-exif-${index}">...</span>
-                                </div>
-                                <div class="verif-item">
-                                    <span class="verif-label">> Stéganographie</span>
-                                    <span class="verif-result" id="res-stegano-${index}">...</span>
-                                </div>
-                                <div class="verif-item">
-                                    <span class="verif-label">> Signature Numérique</span>
-                                    <span class="verif-result" id="res-sign-${index}">...</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    verifContainer.appendChild(fileBlock);
-                });
-            }
-        }
-    });
-
+    if (btnCancelVerif) {
+        btnCancelVerif.addEventListener('click', () => {
+            dropZoneVerif.innerHTML = `<div class="placeholder-art"><br><p id="depot_verif">[ ? ]</p><br></div>`;
+            dropZoneVerif.style.border = "";
+            if (fileStatusVerif) fileStatusVerif.innerText = "en attente...";
+            fileInputVerif.value = "";
+            const verifContainer = document.getElementById('verif-results-container');
+            if (verifContainer) verifContainer.innerHTML = '';
+        });
+    }
 });
-

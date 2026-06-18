@@ -116,7 +116,18 @@ input:-webkit-autofill:active {
 /* =========================================
    STYLES GÉNÉRAUX
    ========================================= */
+.image-preview:hover img {
+    opacity: 0.85;
+    transition: opacity 1s ease;
+}
+.image-preview {
+    transition: background-color 0.2s ease;   /* rend le changement progressif */
+    cursor: pointer;
+}
 
+.image-preview:hover {
+    background-color: rgba(24, 24, 24, 0.15);   /* léger gris au survol */
+}
 * {
     box-sizing: border-box;
     margin: 0;
