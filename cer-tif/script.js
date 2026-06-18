@@ -152,6 +152,24 @@ function afficherDetailsHisto(depot, imgSrc) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- BOUCLIER ANTI DOUBLE-FENÊTRE (Patch Anti-Conflit) ---
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+        const originalClick = input.click;
+        input.click = function() {
+            if (this.isLocked) return; // Si la fenêtre s'ouvre déjà, on bloque les autres ordres
+            this.isLocked = true;
+            originalClick.apply(this);
+            
+            // On déverrouille après 1 seconde (pour permettre de re-cliquer plus tard)
+            setTimeout(() => { this.isLocked = false; }, 1000); 
+        };
+    });
+
+    // Déconnexion 
+    const btnLogout = document.getElementById('btn-logout');
     
     // Déconnexion 
     const btnLogout = document.getElementById('btn-logout');
