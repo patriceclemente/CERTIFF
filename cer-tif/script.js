@@ -1,5 +1,26 @@
-document.addEventListener('DOMContentLoaded', () => {
+function Dinguerie(cible, intensity) {
+    // Implementation for Dinguerie function
+    const n = cible.length;
+    const lettres = '0123456789&@#%$%$£éàçΩωΦβΨΛζλΔδΘθηçΩωΦβΨΛαλΔδΘθηΓγ';
+    // on part du mot d'origine, lettre par lettre
+    const chars = cible.split('');
+    const nbGlitch = Math.floor(Math.random() * intensity);
+    const positions = [];
+    while (positions.length < nbGlitch) {
+        const p = Math.floor(Math.random() * n);
+        if (!positions.includes(p)) positions.push(p);   // pas deux fois la même
+    }
 
+    // on remplace ces positions par un caractère aléatoire
+    for (const p of positions) {
+        chars[p] = lettres[Math.floor(Math.random() * lettres.length)];
+    }
+    return chars.join('');
+                   
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    
     // Déconnexion 
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
@@ -9,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(r => r.json())
                 .then(data => {
                     if (data.ok) {
-                        window.location.href = '/';   // retour à la page de login
+                        window.location.href = '/index.html';   // retour à la page de login
                     }
                 })
                 .catch(err => console.error('Erreur déconnexion :', err));
@@ -71,55 +92,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.ok) {
             usernameDiv.innerText = data.username;
         } else {
-            // Dinguerie
-            const lettres = '0123456789&@#%$%$£éàçΩωΦβΨΛζλΔδΘθηçΩωΦβΨΛαλΔδΘθηΓγ';
-            const cible = 'NOT_FOUND';                       
-            const n = cible.length;
-            const nbGlitch = Math.floor(Math.random() * 4);         
-
             setInterval(() => {
-                // on part du mot d'origine, lettre par lettre
-                const chars = cible.split('');
-
-                const positions = [];
-                while (positions.length < nbGlitch) {
-                    const p = Math.floor(Math.random() * n);
-                    if (!positions.includes(p)) positions.push(p);   // pas deux fois la même
-                }
-
-                // on remplace ces positions par un caractère aléatoire
-                for (const p of positions) {
-                    chars[p] = lettres[Math.floor(Math.random() * lettres.length)];
-                }
-
-                usernameDiv.innerText = chars.join('');
+            usernameDiv.innerText = Dinguerie('NOT_FOUND', 4);
             }, 60);   // rythme (ms)
-
-
-            
            // INVITÉ : masquer l'onglet Vérification et Historique (sidebar) 
            //a securisé quand on connectera l'api avec les fonctionnalités bloquées
+           function glitcherElement(element,intensity) {
+                const mot = element.innerText.trim();   // on mémorise le vrai mot
+                element.style.opacity = '0.4';
+                element.style.pointerEvents = 'none';            // non cliquable
+                setInterval(() => {
+                    element.innerText = Dinguerie(mot, intensity);
+                }, 80);
+            }
+            // --- onglets sidebar bloqués ---
             document.querySelectorAll('.nav-item').forEach(item => {
-                if (item.innerText.trim() === 'Vérification') {
-                    item.style.opacity = '0.4';
-                    item.style.pointerEvents = 'none';  
+                const txt = item.innerText.trim();
+                if (txt === 'Vérification' || txt === 'Historique') {
+                    glitcherElement(item, 4);
                 }
             });
 
-            document.querySelectorAll('.nav-item').forEach(item => {
-                if (item.innerText.trim() === 'Historique') {
-                    item.style.opacity = '0.4';
-                    item.style.pointerEvents = 'none';  
-
-                }
-            });
-
-            //  masquer l'onglet Blockchain OTS 
+            // --- onglet Blockchain OTS bloqué ---
             document.querySelectorAll('.tab').forEach(tab => {
                 if (tab.innerText.trim() === 'Blockchain OTS') {
-                    tab.style.opacity = '0.4';
-                    tab.style.pointerEvents = 'none';   
-  
+                    glitcherElement(tab, 4);
                 }
             });
         }
