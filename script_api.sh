@@ -634,7 +634,7 @@ check_blockchain() {
 
   # --- Proposition de mise à jour (upgrade) ---
   echo
-  if $MODE_INTERACTIVE; then
+  if $MODE_INTERACTIVE; then 
     read -p "Souhaitez-vous mettre à jour la preuve OTS maintenant ? (y/n) [y] : " choice
     choice=${choice:-y}
   else
