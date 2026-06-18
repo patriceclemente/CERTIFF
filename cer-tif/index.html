@@ -283,6 +283,68 @@
 
                     </div>
                 </div>
+                <div id="panel-exif" style="display: none;">
+                    <h2 class="section-title">INSPECTION DES MÉTADONNÉES (EXIF)</h2>
+                    
+                    <div class="info-panel">
+                        <div class="image-preview" id="dropzone-exif">
+                            <div class="placeholder-art">
+                                <br><p id="depot-exif">[ + ]</p><br>
+                                <input type="file" id="file-upload-exif" accept="image/png, image/jpeg, image/tiff" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="info-content">
+                            <div class="details">
+                                <h3>Fichier : <span class="highlight" id="file-status-exif">en attente...</span></h3><br>
+                                <p>Importez une image pour extraire ses données cachées (EXIF, IPTC, XMP).</p>
+                            </div>
+                            <div class="panel-actions">
+                                <button id="btn-import-exif">[I] Importer</button>
+                                <button id="btn-cancel-exif">[A] Annuler</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="exif-results-container" style="display: none; margin-top: 20px;">
+                        <div class="console-panel">
+                            <div class="console-header">
+                                <span>// EXTRACTION_EXIF.exe</span>
+                                <span id="exif-header-status">[ LECTURE TERMINÉE ]</span>
+                            </div>
+                            <div class="console-body">
+                                <div class="verif-grid">
+                                    <div class="verif-item">
+                                        <span class="verif-label">> Appareil / Logiciel</span>
+                                        <span class="verif-result" id="exif-software">...</span>
+                                    </div>
+                                    <div class="verif-item">
+                                        <span class="verif-label">> Date de création originelle</span>
+                                        <span class="verif-result" id="exif-date">...</span>
+                                    </div>
+                                    <div class="verif-item">
+                                        <span class="verif-label">> Dimensions (Pixels)</span>
+                                        <span class="verif-result" id="exif-dimensions">...</span>
+                                    </div>
+                                    <div class="verif-item">
+                                        <span class="verif-label">> Coordonnées GPS</span>
+                                        <span class="verif-result" id="exif-gps">...</span>
+                                    </div>
+                                    <div class="verif-item">
+                                        <span class="verif-label">> Profil Colorimétrique</span>
+                                        <span class="verif-result" id="exif-color">...</span>
+                                    </div>
+                                    <div class="verif-item">
+                                        <span class="verif-label">> Auteur / Copyright</span>
+                                        <span class="verif-result" id="exif-author">...</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="console-tags" style="margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
+                                    <button class="tag" id="btn-dl-exif">[↓] Exporter données (JSON)</button>
+                                </div>
+                            </div>
+                        </div>
+                </div>
             </div>
         </main>
     </div>

@@ -29,6 +29,7 @@ def create_history_table():
             extension TEXT NOT NULL,
             date_depot TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             taille INTEGER NOT NULL,
+            mdp_img TEXT,
             FOREIGN KEY (user_id) REFERENCES users(user_id)
         )
     """)
@@ -55,6 +56,17 @@ def create_status_table():
 #################################
 ######GESTION DES DEPOTS########
 #################################
+def enregistrer_mdp_img(user_id, nom_fichier, mdp):
+    """Enregistre le mot de passe d'une image déposée (pour la steganographie)"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE depots
+        SET mdp_img = ?
+        WHERE user_id = ? AND nom_fichier = ?
+    """, (mdp, user_id, nom_fichier))
+    conn.commit()
+    conn.close()
 
 def enregistrer_depot(user_id, nom_fichier, contenu):
     """Enregistre un dépôt à partir du contenu (octets) et du nom d'origine.

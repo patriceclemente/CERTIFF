@@ -683,7 +683,7 @@ body.theme-grey {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px dashed var(--border-color); /* Ligne pointillée style terminal */
+    /*border-bottom: 1px dashed var(--border-color); /* Ligne pointillée style terminal */
     padding-bottom: 5px;
 }
 
