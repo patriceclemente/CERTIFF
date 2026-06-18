@@ -24,7 +24,8 @@ function griser(btn) {
     btn.style.opacity = '0.4';   
     btn.style.pointerEvents = 'none'; 
 }
-function chargerHistorique() {
+
+/*function chargerHistorique() {
     const container = document.getElementById('historique-container');
     container.innerHTML = '> Chargement...';
 
@@ -66,6 +67,90 @@ function chargerHistorique() {
             console.error('Erreur historique :', err);
         });
 }
+*/
+
+function chargerHistorique() {
+    const container = document.getElementById('historique-container');
+    container.innerHTML = '> Chargement...';
+
+    fetch('/api/historique')
+        .then(r => r.json())
+        .then(data => {
+            if (!data.ok) {
+                container.innerHTML = '> Connecte-toi pour voir ton historique.';
+                return;
+            }
+            if (data.depots.length === 0) {
+                container.innerHTML = '> Aucun dépôt pour le moment.';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            data.depots.forEach(depot => {
+                const tile = document.createElement('div');
+                tile.className = 'histo-tile';
+                
+                // ATTENTION: Il faudra que API Python renvoie un lien vers l'image 
+                // Ex: depot.url_image (base64 ou lien /static/uploads/...)
+                // Si l'URL n'est pas encore gérée côté Python, ça affichera une image vide.
+                const imgSrc = depot.url_image || ''; 
+
+                tile.innerHTML = `
+                    <img src="${imgSrc}" alt="aperçu">
+                    <span>${depot.nom_fichier}</span>
+                `;
+
+                // Clic sur l'image = ouverture de la modale
+                tile.addEventListener('click', () => {
+                    afficherDetailsHisto(depot, imgSrc);
+                });
+
+                container.appendChild(tile);
+            });
+        })
+        .catch(err => {
+            container.innerHTML = '> Erreur de chargement.';
+            console.error('Erreur historique :', err);
+        });
+}
+
+// --- Nouvelle fonction pour gérer la fenêtre modale ---
+function afficherDetailsHisto(depot, imgSrc) {
+    const modal = document.getElementById('histo-modal');
+    const modalFilename = document.getElementById('modal-filename');
+    const modalImg = document.getElementById('modal-img');
+    const modalDetails = document.getElementById('modal-details');
+
+    if (!modal) return;
+
+    const tailleKo = (depot.taille / 1024).toFixed(1);
+
+    modalFilename.innerText = `// ${depot.nom_fichier}`;
+    modalImg.src = imgSrc;
+    
+    // Injecte les détails avec l'esthétique "default settings"
+    modalDetails.innerHTML = `
+        <p>// Détails d'intégrité :</p>
+        <ul style="list-style: none; padding-left: 0;">
+            <li style="margin-bottom: 8px;">> <strong>Date :</strong> ${depot.date_depot}</li>
+            <li style="margin-bottom: 8px;">> <strong>Taille :</strong> ${tailleKo} Ko</li>
+            <li style="margin-bottom: 8px; word-break: break-all;">> <strong>Hash :</strong> ${depot.hash_fichier}</li>
+        </ul>
+        <div class="console-tags" style="margin-top: 30px;">
+            <button class="tag" style="width: 100%;">[↓] Télécharger le fichier source</button>
+        </div>
+    `;
+
+    // Affiche le pop-up
+    modal.style.display = 'flex';
+
+    // Bouton pour fermer
+    document.getElementById('modal-close').onclick = () => {
+        modal.style.display = 'none';
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     
     // Déconnexion 
