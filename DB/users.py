@@ -17,13 +17,46 @@ def create_users_table():
             email TEXT NOT NULL UNIQUE,
             mdp_hash TEXT NOT NULL,
             sel TEXT NOT NULL,
+            confirmed INTEGER DEFAULT 0,
             date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conn.commit()
     conn.close()
 
-def creer_utilisateur(username, email, mot_de_passe):
+def confirm_user(email):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET confirmed = 1 WHERE email = ?", (email,))
+    conn.commit()
+    modifie = cursor.rowcount > 0
+    conn.close()
+    return modifie
+
+
+def get_user_id(identifiant):
+    """Retourne l'user_id à partir de l'email ou du username, ou None."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT user_id FROM users WHERE email = ? OR username = ?",
+        (identifiant, identifiant)
+    )
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+def get_username(user_id):
+    """Retourne le username à partir de l'user_id, ou None."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT username FROM users WHERE user_id = ?", (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+
+def create_user(username, email, mot_de_passe):
     #precheck si l'email ou le username existe déjà
     if check_user_exists(email):
         return "email_pris"
@@ -58,15 +91,33 @@ def creer_utilisateur(username, email, mot_de_passe):
         conn.close()
     return "user_created"
 
-def verifier_identifiants(username ,email, mot_de_passe):
+def create_test_user():
+    """Crée un utilisateur de test si la table est vide."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT mdp_hash, sel FROM users WHERE email = ? OR username = ?", (email, username))
+    cursor.execute("SELECT COUNT(*) FROM users")
+    count = cursor.fetchone()[0]
+    if count == 0:
+        print("Création d'un utilisateur de test : testuser / testpass")
+        return create_user("testuser", "test@fakemailbox.com", "testpass") and confirm_user("test@fakemailbox.com")
+
+    return None
+
+def verif_id(identifiant, mot_de_passe):
+    """Vérifie un couple (identifiant, mot de passe).
+    'identifiant' peut être l'email OU le username.
+    Retourne : 'ok', 'non_confirme' ou 'invalide'."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT mdp_hash, sel, confirmed FROM users WHERE email = ? OR username = ?",
+        (identifiant, identifiant)
+    )
     result = cursor.fetchone()
     conn.close()
     if result is None:
-        return False  # utilisateur non trouvé
-    mdp_hash_stored, sel = result
+        return "invalide"  # utilisateur non trouvé
+    mdp_hash_stored, sel, confirmed = result
     # hasher le mot de passe fourni avec le même sel
     mdp_hash_provided = hashlib.pbkdf2_hmac(
         "sha256",
@@ -74,9 +125,25 @@ def verifier_identifiants(username ,email, mot_de_passe):
         bytes.fromhex(sel),
         100000
     ).hex()
-    return mdp_hash_provided == mdp_hash_stored
+    if mdp_hash_provided != mdp_hash_stored:
+        return "invalide"  # mauvais mot de passe
+    if not confirmed:
+        return "non_confirme"  # compte pas encore confirmé par mail
+    return "ok"
 
-def modifie_mdp(email, nouveau_mdp):
+def get_user_id(identifiant):
+    """Retourne l'user_id à partir de l'email ou du username, ou None."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT user_id FROM users WHERE email = ? OR username = ?",
+        (identifiant, identifiant)
+    )
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+def modif_pw(email, nouveau_mdp):
     # générer un nouveau sel
     sel = os.urandom(16).hex()
     # hasher le nouveau mot de passe
@@ -96,7 +163,7 @@ def modifie_mdp(email, nouveau_mdp):
     conn.commit()
     conn.close()
 
-def modifie_username(email, nouveau_username):
+def modif_username(email, nouveau_username):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute(
