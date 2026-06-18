@@ -70,3 +70,6 @@ signature.txt
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# SQLite databases
+*.db
