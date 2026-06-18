@@ -438,11 +438,6 @@ def check_blockchain(ots_file: str | Path | None = None) -> bool:
     print()
 
     if state.MODE_INTERACTIVE:
-        choice = input("Souhaitez-vous mettre a jour la preuve OTS maintenant ? (y/n) [y] : ") or "y"
-    else:
-        choice = "y"
-
-    if choice.lower() == "y":
         print("[INFO] Tentative de mise a jour de la preuve (upgrade)...")
         log_file = Path(tempfile.gettempdir()) / "ots_upgrade.log"
         with log_file.open("w", encoding="utf-8") as log:
