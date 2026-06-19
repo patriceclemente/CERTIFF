@@ -337,22 +337,31 @@ def check_stegano() -> bool:
         return False
 
     password = pw_file.read_text(encoding="utf-8")
-    msg_file = state.WM_SIGNATURE_SUBDIR / "signature.txt"
     print(f'[INFO] Extraction avec -p "{password}" ...')
 
     try:
-        run_command(
-            [
-                "java",
-                "-jar",
-                str(state.OPENSTEGO_JAR),
-                "extract",
-                "-sf",
-                str(state.FILE_WM_INVISIBLE),
-                "-p",
-                password,
-            ]
-        )
+        with tempfile.TemporaryDirectory() as extract_dir:
+            run_command(
+                [
+                    "java",
+                    "-jar",
+                    str(state.OPENSTEGO_JAR),
+                    "extract",
+                    "-sf",
+                    str(state.FILE_WM_INVISIBLE),
+                    "-xd",
+                    extract_dir,
+                    "-p",
+                    password,
+                ]
+            )
+            extracted_files = [path for path in Path(extract_dir).iterdir() if path.is_file()]
+            if extracted_files:
+                extracted_message = extracted_files[0].read_text(encoding="utf-8", errors="replace")
+                print(f"[OK] Message extrait : {extracted_message}")
+            else:
+                print("[WARN] Aucun message extrait")
+                return False
     except FileNotFoundError:
         print("[ERROR] java est introuvable")
         return False
@@ -360,8 +369,6 @@ def check_stegano() -> bool:
         print(f"[ERROR] Echec OpenStego extract : {error}")
         return False
 
-    if msg_file.is_file():
-        print(f"[OK] Message extrait : {msg_file.read_text(encoding='utf-8')}")
     return True
 
 

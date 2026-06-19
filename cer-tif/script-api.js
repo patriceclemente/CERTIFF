@@ -108,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (fileInput) {
         fileInput.addEventListener('change', () => {
             currentCertifStep = 0;
+            window.currentDepotId = null;
             console.log("Nouvelle image detectee. Stepper reinitialise a l'etape 0.");
         });
     }
@@ -117,6 +118,29 @@ document.addEventListener('DOMContentLoaded', () => {
     //  IMPORTANT : cet appel NE sauvegarde PAS en base de donnees.
     //  La sauvegarde est faite par /api/upload (script.js, clic [Importer]).
     // ---------------------------------------------------------
+    function ensureDepotBeforePipeline() {
+        if (window.currentDepotId) {
+            return Promise.resolve(window.currentDepotId);
+        }
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            return Promise.reject(new Error("Aucune image importee."));
+        }
+
+        const uploadData = new FormData();
+        uploadData.append('file', fileInput.files[0]);
+        return fetch('/api/upload', { method: 'POST', body: uploadData })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== "success") {
+                    throw new Error(data.message || "Depot impossible.");
+                }
+                if (data.depot_id) {
+                    window.currentDepotId = data.depot_id;
+                }
+                return window.currentDepotId;
+            });
+    }
+
     function executerEtapePipeline(apiAction, nomEtapeAffichage, isNextClick = false) {
         if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
             alert("Veuillez d'abord importer une image via la zone [ + ].");
@@ -140,7 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log(`[Etape ${currentCertifStep + 1}] Envoi de l'action : ${apiAction}`);
 
-        fetch('/api', { method: 'POST', body: formData })
+        ensureDepotBeforePipeline()
+            .then(() => {
+                formData.set('depot_id', window.currentDepotId || "");
+                return fetch('/api', { method: 'POST', body: formData });
+            })
             .then(response => response.json())
             .then(data => {
                 if (data.status === "success") {
@@ -153,7 +181,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (isNextClick) currentCertifStep++;
                     alert(`Succes : ${nomEtapeAffichage} valide. Etape suivante prete.`);
                 } else {
-                    alert(`Erreur au cours de l'etape : ${data.message}`);
+                    const details = Array.isArray(data.terminal_output)
+                        ? "\n\n" + data.terminal_output.slice(-6).join("\n")
+                        : "";
+                    alert(`Erreur au cours de l'etape : ${data.message}${details}`);
                 }
                 if (btnNext) btnNext.innerText = "[N] Next ";
                 if (btnExecute) btnExecute.innerText = "[↵] Executer";

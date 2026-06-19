@@ -75,6 +75,8 @@ def sanitize_terminal_logs(lines):
             continue
         if "INPUT_IMG_PATH" in public_line:
             continue
+        if public_line.startswith("Extracted file:"):
+            continue
         if "source :" in public_line or "dest   :" in public_line:
             continue
         if public_line.startswith("       "):
@@ -110,6 +112,60 @@ def project_path(relative_path):
     return resolved
 
 
+def certification_workspace(depot_id):
+    return Path(depots.STOCKAGE_DIR) / "certifications" / str(depot_id)
+
+
+def newest_file(paths):
+    files = [Path(path) for path in paths if Path(path).is_file()]
+    if not files:
+        return None
+    return max(files, key=lambda path: path.stat().st_mtime)
+
+
+def configure_state_from_storage(state_module, storage_root, img_base, input_path):
+    root = Path(storage_root)
+    img_base = str(img_base)
+    input_path = Path(input_path)
+
+    state_module.INPUT_IMG_PATH = newest_file(
+        (root / "images_brutes" / img_base).glob("*.png")
+    ) or input_path
+    state_module.IMG_BASE = img_base
+    state_module.IMG_EXT = "png"
+
+    state_module.WATERMARK_VISIBLE_DIR = root / "watermark-filigrane-visible"
+    state_module.WATERMARK_INVISIBLE_DIR = root / "watermark-filigrane-invisible"
+    state_module.SIGNATURES_DIR = root / "watermark-signatures"
+    state_module.NUM_SIGNATURE_DIR = root / "watermark-signature_numérique"
+
+    state_module.WM_VISIBLE_SUBDIR = state_module.WATERMARK_VISIBLE_DIR / img_base
+    state_module.WM_INVISIBLE_SUBDIR = state_module.WATERMARK_INVISIBLE_DIR / img_base
+    state_module.WM_SIGNATURE_SUBDIR = state_module.SIGNATURES_DIR / img_base
+    state_module.WM_NUM_SIGNATURE_SUBDIR = state_module.NUM_SIGNATURE_DIR / img_base
+
+    visible_files = list(state_module.WM_VISIBLE_SUBDIR.glob("*.png"))
+    exif_files = [path for path in visible_files if "exif" in path.stem.lower()]
+    state_module.FILE_WM_VISIBLE = newest_file(
+        [path for path in visible_files if "exif" not in path.stem.lower()]
+    ) or newest_file(visible_files)
+    state_module.FILE_WM_EXIF = newest_file(exif_files)
+    state_module.FILE_WM_INVISIBLE = newest_file(state_module.WM_INVISIBLE_SUBDIR.glob("*.png"))
+    state_module.FILE_NUM_SIGNED = newest_file(state_module.WM_NUM_SIGNATURE_SUBDIR.glob("*.png"))
+    state_module.SIG_FILE = state_module.WM_SIGNATURE_SUBDIR / "bleu-pastel.sig"
+
+    return any(
+        path and Path(path).is_file()
+        for path in (
+            state_module.FILE_WM_VISIBLE,
+            state_module.FILE_WM_EXIF,
+            state_module.FILE_WM_INVISIBLE,
+            state_module.FILE_NUM_SIGNED,
+            state_module.SIG_FILE,
+        )
+    )
+
+
 def store_certification_artifacts(state_module):
     artifacts = {}
     for field in ARTIFACT_FIELDS:
@@ -139,13 +195,23 @@ def restore_certification_artifacts(state_module):
     return restored
 
 
-def run_report_with_saved_artifacts(chemin_stockage):
+def run_report_with_saved_artifacts(chemin_stockage, work_base=None, legacy_img_base=None):
     state_module = importlib.import_module("certifier_image.state")
     pipeline_module = importlib.import_module("certifier_image.pipeline")
     paths_module = importlib.import_module("certifier_image.paths")
     utils_module = importlib.import_module("certifier_image.utils")
 
-    restored = restore_certification_artifacts(state_module)
+    restored = False
+    if work_base:
+        workspace_storage = Path(work_base) / "DB" / "stockage"
+        restored = configure_state_from_storage(state_module, workspace_storage, Path(chemin_stockage).stem, chemin_stockage)
+
+    if not restored and legacy_img_base:
+        restored = configure_state_from_storage(state_module, depots.STOCKAGE_DIR, legacy_img_base, chemin_stockage)
+
+    if not restored:
+        restored = restore_certification_artifacts(state_module)
+
     if not restored:
         state_module.ACTION = "report"
         state_module.BASE_DIR = Path(".")
@@ -606,6 +672,7 @@ def handle_api():
     user_id = session.get("user_id")
     old_stdout = None
     work_base = None
+    delete_work_base = False
  
     try:
         action = request.form.get("action", "pipeline")
@@ -618,8 +685,17 @@ def handle_api():
             return jsonify({"status": "error", "message": "Nom de fichier vide."}), 400
         contenu = file.read()
  
-        
-        work_base = tempfile.mkdtemp(prefix="cert_")
+        persistent_depot_id = None
+        if user_id is not None and depot_id_form:
+            persistent_depot_id = int(depot_id_form)
+
+        if persistent_depot_id is not None:
+            work_base = str(certification_workspace(persistent_depot_id))
+            os.makedirs(work_base, exist_ok=True)
+        else:
+            work_base = tempfile.mkdtemp(prefix="cert_")
+            delete_work_base = True
+
         input_dir = os.path.join(work_base, "input")
         os.makedirs(input_dir, exist_ok=True)
         chemin_stockage = os.path.join(input_dir, "image.png")
@@ -669,7 +745,10 @@ def handle_api():
         state_module = importlib.import_module("certifier_image.state")
  
         if action == "report":
-            terminal_logs = run_report_with_saved_artifacts(chemin_stockage)
+            legacy_img_base = None
+            if persistent_depot_id is not None:
+                legacy_img_base = get_depot_hash(persistent_depot_id)
+            terminal_logs = run_report_with_saved_artifacts(chemin_stockage, work_base, legacy_img_base)
             return jsonify({
                 "status": "success",
                 "action_executed": action,
@@ -685,6 +764,11 @@ def handle_api():
         sys.stdout = old_stdout
         old_stdout = None
         public_terminal_logs = sanitize_terminal_logs(captured_output.getvalue().splitlines())
+
+        if return_code == 0:
+            store_certification_artifacts(state_module)
+            if user_id is not None and depot_id_form and action in {"blockchain", "pipeline"}:
+                register_blockchain_job(user_id, depot_id_form, state_module)
  
         # --- table statuts ---
         if depot_id_form and action in ACTION_VERS_TRAITEMENT:
@@ -745,8 +829,9 @@ def handle_api():
         return jsonify({"status": "error", "message": str(e)}), 500
  
     finally:
-        # suppression de TOUT le dossier de travail (intermediaires inclus)
-        if work_base:
+        # On supprime seulement les workspaces temporaires des invites.
+        # Les workspaces des depots connectes gardent les preuves de verification.
+        if delete_work_base and work_base:
             shutil.rmtree(work_base, ignore_errors=True)
 
 
@@ -754,4 +839,4 @@ def handle_api():
 if __name__ == "__main__":
     print("Serveur Flask (auth + certification) sur http://localhost:5001")
     start_blockchain_worker()
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5001, use_reloader=False)

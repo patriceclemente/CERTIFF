@@ -35,6 +35,13 @@ def create_history_table():
     # une même image (même hash) ne peut exister qu'une fois par utilisateur.
     # try/except : si des doublons existent encore (migration pas lancée),
     # on ne crée pas l'index plutôt que de planter au démarrage.
+    cursor.execute("PRAGMA table_info(depots)")
+    colonnes = {row[1] for row in cursor.fetchall()}
+    if "extension" not in colonnes:
+        cursor.execute("ALTER TABLE depots ADD COLUMN extension TEXT DEFAULT ''")
+    if "mdp_stgno" not in colonnes:
+        cursor.execute("ALTER TABLE depots ADD COLUMN mdp_stgno TEXT DEFAULT 'password'")
+
     try:
         cursor.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS idx_depots_user_hash
