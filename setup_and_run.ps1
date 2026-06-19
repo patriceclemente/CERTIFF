@@ -32,12 +32,12 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Initialiser la base de donnees
-Write-Host "[INFO] Initialisation de la base de donnees..." -ForegroundColor Cyan
-py DB\init_DB.py
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERREUR] Echec de l'initialisation de la base de donnees." -ForegroundColor Red
-    exit 1
-}
+# Write-Host "[INFO] Initialisation de la base de donnees..." -ForegroundColor Cyan
+# py DB\init_DB.py
+# if ($LASTEXITCODE -ne 0) {
+#     Write-Host "[ERREUR] Echec de l'initialisation de la base de donnees." -ForegroundColor Red
+#     exit 1
+# }
 
 # Lancer l'application
 Write-Host "[INFO] Lancement de l'application..." -ForegroundColor Cyan
