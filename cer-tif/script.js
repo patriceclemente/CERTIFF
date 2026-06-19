@@ -162,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Variable globale pour stocker tous les fichiers du lot + état de connexion
     let selectedFiles = [];
     let estConnecte = false;
+    window.currentDepotId = null;
 
     function afficherApercu(files, zone) {
         if (!zone || !files.length) return;
@@ -188,7 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(r => r.json())
                 .then(data => {
                     if (data.status === 'success') {
+                        
                         if (data.depot_id) {
+                            window.currentDepotId = data.depot_id;
                             console.log(`Dépôt enregistré : ${file.name} (id=${data.depot_id})`);
                             if (fileStatus) fileStatus.innerText = `${file.name} (sauvegardé)`;
                         } else {

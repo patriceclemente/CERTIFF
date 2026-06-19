@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import io
 import base64
@@ -12,8 +13,6 @@ import time
 import uuid
 from pathlib import Path
 from DB import init_DB
-import shutil
-print("magick vu par Python :", shutil.which("magick"))
 from flask import Flask, request, jsonify, url_for, session, send_file
 from dotenv import load_dotenv
 
@@ -36,6 +35,14 @@ app = Flask(__name__, static_folder="cer-tif", static_url_path="")
 
 # clé secrète nécessaire pour signer les cookies de session (réutilise celle du .env)
 app.secret_key = os.environ["SECRET_KEY"]
+
+ACTION_VERS_TRAITEMENT = {
+    "visible": "watermarking",
+    "exif": "meta-data",
+    "stegano": "steganographie",
+    "signature": "signature",
+    "blockchain": "blockchain",
+}
 
 # --- config pour la partie certification d'image ---
 
@@ -220,6 +227,18 @@ def get_depot_filename(depot_id):
     finally:
         conn.close()
 
+def get_depot_hash(depot_id):
+    if depot_id is None:
+        return None
+    conn = sqlite3.connect(database_path())
+    try:
+        row = conn.execute(
+            "SELECT hash_fichier FROM depots WHERE depot_id = ?",
+            (depot_id,),
+        ).fetchone()
+        return row[0] if row else None
+    finally:
+        conn.close()
 
 def resolve_ots_bin():
     configured = os.environ.get("OTS_BIN")
@@ -435,16 +454,13 @@ def api_image(hash_fichier):
     if user_id is None:
         return jsonify({"ok": False, "message": "Non connecté"}), 401
 
-    # un hash sha256 = 64 caractères hexadécimaux. On valide pour éviter tout
-    # path traversal (ex: "../../autre_chose").
     if not re.fullmatch(r"[a-fA-F0-9]{64}", hash_fichier or ""):
         return jsonify({"ok": False, "message": "Identifiant invalide"}), 404
 
-    # on vérifie que ce dépôt appartient bien à l'utilisateur connecté
     conn = sqlite3.connect(database_path())
     try:
         row = conn.execute(
-            "SELECT extension FROM depots WHERE user_id = ? AND hash_fichier = ?",
+            "SELECT depot_id, extension FROM depots WHERE user_id = ? AND hash_fichier = ?",
             (user_id, hash_fichier),
         ).fetchone()
     finally:
@@ -453,11 +469,18 @@ def api_image(hash_fichier):
     if row is None:
         return jsonify({"ok": False, "message": "Image introuvable"}), 404
 
-    chemin = os.path.join(depots.RAW_UPLOAD_DIR, hash_fichier)
-    if not os.path.isfile(chemin):
-        return jsonify({"ok": False, "message": "Fichier absent du stockage"}), 404
+    depot_id, extension = row
 
-    return send_file(chemin, mimetype=mimetype_from_extension(row[0]))
+    # priorité à la version la plus traitée (cooked), sinon l'originale (raw)
+    cooked = os.path.join(depots.COOKED_UPLOAD_DIR, f"{depot_id}.png")
+    if os.path.isfile(cooked):
+        return send_file(cooked, mimetype="image/png")
+
+    raw = os.path.join(depots.RAW_UPLOAD_DIR, hash_fichier)
+    if os.path.isfile(raw):
+        return send_file(raw, mimetype=mimetype_from_extension(extension))
+
+    return jsonify({"ok": False, "message": "Fichier absent du stockage"}), 404
 
 @app.route("/api/historique")
 def historique():
@@ -582,28 +605,42 @@ def api_depot():
 def handle_api():
     user_id = session.get("user_id")
     old_stdout = None
-
+    work_base = None
+ 
     try:
         action = request.form.get("action", "pipeline")
+        depot_id_form = request.form.get("depot_id") or None
+ 
         if "file" not in request.files:
             return jsonify({"status": "error", "message": "Aucun fichier fourni."}), 400
-
         file = request.files["file"]
         if file.filename == "":
             return jsonify({"status": "error", "message": "Nom de fichier vide."}), 400
-
         contenu = file.read()
-        # on garde uniquement l'extension d'origine, et on génère un nom neutre
-        extension = os.path.splitext(file.filename)[1].lower()   # ex: ".png"
-        nom_sur = f"{uuid.uuid4().hex}{extension}"               # ex: "3f2a...e1.png"
-        # --- Copie de travail temporaire (jamais en base) ---
-        depot_id = None
-        tmp_dir = tempfile.mkdtemp(prefix="work_")
-        chemin_stockage = os.path.join(tmp_dir, nom_sur)
-        with open(chemin_stockage, "wb") as f:
-            f.write(contenu)
+ 
+        
+        work_base = tempfile.mkdtemp(prefix="cert_")
+        input_dir = os.path.join(work_base, "input")
+        os.makedirs(input_dir, exist_ok=True)
+        chemin_stockage = os.path.join(input_dir, "image.png")
 
-        # parametres de l'interface
+        # Choix de l'image d'entrée :
+        #  - connecté avec depot_id : on repart de la version la plus traitée
+        #    (cooked si elle existe, sinon raw) -> les traitements s'empilent.
+        #  - sinon (invité) : on prend le fichier envoyé tel quel.
+        source_path = None
+        if user_id is not None and depot_id_form:
+            hash_fichier = get_depot_hash(int(depot_id_form))
+            if hash_fichier:
+                source_path = depots.chemin_image_courante(int(depot_id_form), hash_fichier)
+
+        if source_path and os.path.isfile(source_path):
+            shutil.copy2(source_path, chemin_stockage)
+        else:
+            with open(chemin_stockage, "wb") as f:
+                f.write(contenu)
+ 
+        # parametres watermark
         wm_text = request.form.get("wm_text", "© Cert-Art.fr")
         wm_size = request.form.get("wm_size", "35")
         wm_color = request.form.get("wm_color", "128,128,128")
@@ -611,7 +648,9 @@ def handle_api():
         wm_angle = request.form.get("wm_angle", "-45")
         wm_spacing = request.form.get("wm_spacing", "300")
         stegano_message = request.form.get("stegano_message", "defaut")
-
+ 
+        # base_dir = work_base  ->  toutes les sorties du moteur vont dans
+        # work_base/DB/stockage/... (donc supprimees a la fin)
         argv = [
             "--no-interactive",
             "--wm-text", str(wm_text),
@@ -622,85 +661,97 @@ def handle_api():
             "--wm-spacing", str(wm_spacing),
             "--stegano-message", str(stegano_message),
             action,
+            work_base,
             chemin_stockage,
         ]
-
-        print(f"Transmission des parametres au moteur : {argv}")
-
+ 
         cli_module = importlib.import_module("certifier_image.cli")
         state_module = importlib.import_module("certifier_image.state")
-
+ 
         if action == "report":
             terminal_logs = run_report_with_saved_artifacts(chemin_stockage)
-            public_terminal_logs = sanitize_terminal_logs(terminal_logs)
             return jsonify({
                 "status": "success",
                 "action_executed": action,
-                "depot_id": depot_id,
+                "depot_id": depot_id_form,
                 "image_base64": None,
-                "terminal_output": public_terminal_logs
+                "terminal_output": sanitize_terminal_logs(terminal_logs),
             })
-
+ 
         old_stdout = sys.stdout
         captured_output = io.StringIO()
         sys.stdout = captured_output
-
         return_code = cli_module.main(argv)
-
         sys.stdout = old_stdout
-        terminal_logs = captured_output.getvalue().splitlines()
-        public_terminal_logs = sanitize_terminal_logs(terminal_logs)
-
-        if return_code == 0:
-            store_certification_artifacts(state_module)
-            # depot_id est None ici : la notification blockchain utilisera
-            # le nom de fichier de l'image au lieu du nom du depot.
-            if user_id is not None and action in {"blockchain", "pipeline"}:
-                register_blockchain_job(user_id, depot_id, state_module)
-
-        if return_code != 0 and action != "report":
+        old_stdout = None
+        public_terminal_logs = sanitize_terminal_logs(captured_output.getvalue().splitlines())
+ 
+        # --- table statuts ---
+        if depot_id_form and action in ACTION_VERS_TRAITEMENT:
+            statut = "termine" if return_code == 0 else "echec"
+            try:
+                depots.enregistrer_traitement(int(depot_id_form), ACTION_VERS_TRAITEMENT[action], statut)
+            except Exception as e:
+                print("Statut non enregistre :", e)
+ 
+        if return_code != 0:
             return jsonify({
                 "status": "error",
                 "message": "Le traitement de l'image a echoue",
-                "terminal_output": public_terminal_logs
+                "terminal_output": public_terminal_logs,
             }), 500
-
-        # localisation de l'image produite
+ 
+        # --- image la plus traitee ---
         final_image_path = None
-        state_module = importlib.import_module("certifier_image.state")
-        possible_outputs = [
+        for path in (
             state_module.FILE_NUM_SIGNED,
             state_module.FILE_WM_INVISIBLE,
             state_module.FILE_WM_EXIF,
             state_module.FILE_WM_VISIBLE,
             state_module.INPUT_IMG_PATH,
-        ]
-        for path in possible_outputs:
+        ):
             if path and Path(path).is_file():
                 final_image_path = Path(path)
                 break
-
+ 
         base64_image = None
         if final_image_path and final_image_path.is_file():
             with open(final_image_path, "rb") as img_file:
-                encoded_string = base64.b64encode(img_file.read()).decode("utf-8")
-            base64_image = f"data:image/png;base64,{encoded_string}"
-
+                base64_image = "data:image/png;base64," + base64.b64encode(img_file.read()).decode("utf-8")
+ 
+            # copie de la version la plus traitee dans cooked (persiste)
+            print("DEBUG cooked -> depot_id:", depot_id_form,
+              "| final:", final_image_path,
+              "| cooked_dir:", depots.COOKED_UPLOAD_DIR)
+            if depot_id_form:
+                try:
+                    os.makedirs(depots.COOKED_UPLOAD_DIR, exist_ok=True)
+                    dest = os.path.join(depots.COOKED_UPLOAD_DIR, f"{depot_id_form}.png")
+                    shutil.copy2(final_image_path, dest)
+                except Exception as e:
+                    print("Copie cooked impossible :", e)
+ 
         return jsonify({
             "status": "success",
             "action_executed": action,
-            "depot_id": depot_id,
+            "depot_id": depot_id_form,
             "image_base64": base64_image,
-            "terminal_output": public_terminal_logs
+            "terminal_output": public_terminal_logs,
         })
-
+ 
     except Exception as e:
         if old_stdout is not None:
             sys.stdout = old_stdout
         return jsonify({"status": "error", "message": str(e)}), 500
+ 
+    finally:
+        # suppression de TOUT le dossier de travail (intermediaires inclus)
+        if work_base:
+            shutil.rmtree(work_base, ignore_errors=True)
+
 
 
 if __name__ == "__main__":
     print("Serveur Flask (auth + certification) sur http://localhost:5001")
     start_blockchain_worker()
-    app.run(debug=True, port=5001, use_reloader=False)
+    app.run(debug=True, port=5001)

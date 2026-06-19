@@ -1,12 +1,3 @@
-// ============================================================
-//  Cert.tif - script-api.js  (couche API)
-//  Responsabilites :
-//   - pipeline de certification (bouton [N] Next, [Exécuter])
-//   - export de l'image traitee
-//   - rapport d'audit de la zone Verification (action=report)
-//  L'interface (nav, apercu, miroir, themes, onglets) est dans script.js
-// ============================================================
-
 document.addEventListener('DOMContentLoaded', () => {
 
     // ---------------------------------------------------------
@@ -142,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('wm_angle', document.getElementById('watermark-angle')?.value || "-45");
         formData.append('wm_spacing', document.getElementById('watermark-espace')?.value || "300");
         formData.append('stegano_message', document.getElementById('stegano-msg')?.value || "defaut");
+        formData.append('depot_id', window.currentDepotId || "");
 
         if (btnExecute) btnExecute.innerText = "[...] Calcul...";
         if (btnNext) btnNext.innerText = "[...] Calcul...";
