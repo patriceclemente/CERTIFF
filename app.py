@@ -9,13 +9,16 @@ import subprocess
 import tempfile
 import threading
 import time
+import uuid
 from pathlib import Path
-
-from flask import Flask, request, jsonify, url_for, session
+from DB import init_DB
+import shutil
+print("magick vu par Python :", shutil.which("magick"))
+from flask import Flask, request, jsonify, url_for, session, send_file
 from dotenv import load_dotenv
 
 load_dotenv()   # charge SECRET_KEY, GMAIL_ADDR, GMAIL_APP_PASS depuis .env
-
+init_DB.init()  # initialise DB
 # =========================================================
 #  CHEMINS & IMPORTS PROJET
 # =========================================================
@@ -412,12 +415,55 @@ def me():
 # =========================================================
 #  HISTORIQUE
 # =========================================================
+def mimetype_from_extension(extension):
+    ext = (extension or "").lower().lstrip(".")
+    return {
+        "png": "image/png",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "tif": "image/tiff",
+        "tiff": "image/tiff",
+        "gif": "image/gif",
+        "webp": "image/webp",
+        "bmp": "image/bmp",
+    }.get(ext, "application/octet-stream")
+
+
+@app.route("/api/image/<hash_fichier>")
+def api_image(hash_fichier):
+    user_id = session.get("user_id")
+    if user_id is None:
+        return jsonify({"ok": False, "message": "Non connecté"}), 401
+
+    # un hash sha256 = 64 caractères hexadécimaux. On valide pour éviter tout
+    # path traversal (ex: "../../autre_chose").
+    if not re.fullmatch(r"[a-fA-F0-9]{64}", hash_fichier or ""):
+        return jsonify({"ok": False, "message": "Identifiant invalide"}), 404
+
+    # on vérifie que ce dépôt appartient bien à l'utilisateur connecté
+    conn = sqlite3.connect(database_path())
+    try:
+        row = conn.execute(
+            "SELECT extension FROM depots WHERE user_id = ? AND hash_fichier = ?",
+            (user_id, hash_fichier),
+        ).fetchone()
+    finally:
+        conn.close()
+
+    if row is None:
+        return jsonify({"ok": False, "message": "Image introuvable"}), 404
+
+    chemin = os.path.join(depots.RAW_UPLOAD_DIR, hash_fichier)
+    if not os.path.isfile(chemin):
+        return jsonify({"ok": False, "message": "Fichier absent du stockage"}), 404
+
+    return send_file(chemin, mimetype=mimetype_from_extension(row[0]))
 
 @app.route("/api/historique")
 def historique():
     user_id = session.get("user_id")
     if user_id is None:
-        return jsonify({"ok": False, "message": "Connect toi petit malin"}), 401
+        return jsonify({"ok": False, "message": "Non connecté"}), 401
 
     depots_bruts = depots.lister_depots(user_id)   # liste de tuples
 
@@ -428,7 +474,8 @@ def historique():
             "nom_fichier": d[0],
             "hash_fichier": d[1],
             "date_depot": d[2],
-            "taille": d[3]
+            "taille": d[3],
+            "url_image": f"/api/image/{d[1]}"
         })
 
     return jsonify({"ok": True, "depots": depots_liste})
@@ -546,11 +593,13 @@ def handle_api():
             return jsonify({"status": "error", "message": "Nom de fichier vide."}), 400
 
         contenu = file.read()
-
+        # on garde uniquement l'extension d'origine, et on génère un nom neutre
+        extension = os.path.splitext(file.filename)[1].lower()   # ex: ".png"
+        nom_sur = f"{uuid.uuid4().hex}{extension}"               # ex: "3f2a...e1.png"
         # --- Copie de travail temporaire (jamais en base) ---
         depot_id = None
         tmp_dir = tempfile.mkdtemp(prefix="work_")
-        chemin_stockage = os.path.join(tmp_dir, file.filename)
+        chemin_stockage = os.path.join(tmp_dir, nom_sur)
         with open(chemin_stockage, "wb") as f:
             f.write(contenu)
 

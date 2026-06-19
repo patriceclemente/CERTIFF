@@ -1,5 +1,5 @@
-import users
-import depots
+import DB.users as users
+import DB.depots as depots
 
 def init():
     # users d'abord (table parent),
