@@ -39,6 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!line || line.includes("Rapport final") || line.includes("Verification des dependances") || line.includes("Dependances pretes") || line.includes("[ACTION]")) {
                 return;
             }
+            if (line.includes("Extraction avec -p")) {
+                return;
+            }
 
             const lower = line.toLowerCase();
             const matched = sections.find(section =>
