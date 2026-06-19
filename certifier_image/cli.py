@@ -61,6 +61,9 @@ def parse_pipeline_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--wm-angle", type=float, default=state.WM_ANGLE)
     parser.add_argument("--wm-font", default=state.WM_FONT)
     parser.add_argument("--stegano-message", default=state.MESSAGE)
+    parser.add_argument("--exif-artist", default=state.EXIF_ARTIST)
+    parser.add_argument("--exif-copyright", default=state.EXIF_COPYRIGHT)
+    parser.add_argument("--exif-date", default=None)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("items", nargs="*")
     return parser.parse_args(argv)
@@ -79,6 +82,9 @@ def configure_from_args(args: argparse.Namespace) -> bool:
     state.WM_ANGLE = args.wm_angle
     state.WM_FONT = args.wm_font
     state.MESSAGE = args.stegano_message
+    state.EXIF_ARTIST = args.exif_artist
+    state.EXIF_COPYRIGHT = args.exif_copyright or args.exif_artist
+    state.EXIF_CUSTOM_DATE = args.exif_date
 
     if args.check:
         return check_dependencies()
@@ -92,14 +98,11 @@ def configure_from_args(args: argparse.Namespace) -> bool:
     if len(items) == 1:
         state.BASE_DIR = Path(".")
         state.INPUT_IMGS = [Path(items[0])]
-        state.EXIF_CUSTOM_DATE = None
     elif len(items) >= 2:
         state.BASE_DIR = Path(items[0])
         image_items = items[1:]
         if len(image_items) >= 2 and looks_like_exif_date(image_items[-1]):
-            state.EXIF_CUSTOM_DATE = image_items.pop()
-        else:
-            state.EXIF_CUSTOM_DATE = None
+            state.EXIF_CUSTOM_DATE = state.EXIF_CUSTOM_DATE or image_items.pop()
 
         state.INPUT_IMGS = [Path(item) for item in image_items]
         if not state.INPUT_IMGS:

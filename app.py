@@ -724,6 +724,9 @@ def handle_api():
         wm_angle = request.form.get("wm_angle", "-45")
         wm_spacing = request.form.get("wm_spacing", "300")
         stegano_message = request.form.get("stegano_message", "defaut")
+        exif_artist = request.form.get("exif_artist", "").strip() or "© Cert-Art.fr"
+        exif_copyright = request.form.get("exif_copyright", "").strip() or exif_artist
+        exif_date = request.form.get("exif_date", "").strip()
  
         # base_dir = work_base  ->  toutes les sorties du moteur vont dans
         # work_base/DB/stockage/... (donc supprimees a la fin)
@@ -736,6 +739,9 @@ def handle_api():
             "--wm-angle", str(wm_angle),
             "--wm-spacing", str(wm_spacing),
             "--stegano-message", str(stegano_message),
+            "--exif-artist", str(exif_artist),
+            "--exif-copyright", str(exif_copyright),
+            "--exif-date", str(exif_date),
             action,
             work_base,
             chemin_stockage,

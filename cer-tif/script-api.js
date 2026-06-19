@@ -157,6 +157,9 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('wm_angle', document.getElementById('watermark-angle')?.value || "-45");
         formData.append('wm_spacing', document.getElementById('watermark-espace')?.value || "300");
         formData.append('stegano_message', document.getElementById('stegano-msg')?.value || "defaut");
+        formData.append('exif_artist', document.getElementById('exif-auteur')?.value || "");
+        formData.append('exif_copyright', document.getElementById('exif-copy')?.value || "");
+        formData.append('exif_date', document.getElementById('exif-date')?.value || "");
         formData.append('depot_id', window.currentDepotId || "");
 
         if (btnExecute) btnExecute.innerText = "[...] Calcul...";
