@@ -2,7 +2,9 @@
 
 
 
-Pour pouvoir lancer le site il faut changer le .env.example en .env : 
+Pour pouvoir lancer le site il faut changer le .env.example en .env 
+
+On vous envoie par mail les données exact a mettre dans le .env
 
 
 puis lancer la commande : 
