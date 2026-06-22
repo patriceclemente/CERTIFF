@@ -1,0 +1,27 @@
+# Environnements virtuels / cache Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Git
+.git/
+.gitignore
+
+# Secrets (fournis au runtime via docker-compose / --env-file, jamais dans l'image)
+.env
+
+# Editeur
+.vscode/
+
+# Données générées localement (persistées via volume, pas besoin dans l'image)
+DB/stockage/
+images_brutes/
+watermark-filigrane-visible/
+watermark-filigrane-invisible/
+watermark-signatures/
+watermark-signature_numérique/
+
+# Divers
+*.db
+test_out.png

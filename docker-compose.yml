@@ -1,0 +1,18 @@
+services:
+  certif-image:
+    build: .
+    container_name: certif-image
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    volumes:
+      # Persistance de la base de données et des images traitées entre les redémarrages
+      - ./DB/DB.db:/app/DB/DB.db
+      - ./DB/stockage:/app/DB/stockage
+      - ./images_brutes:/app/images_brutes
+      - ./watermark-filigrane-visible:/app/watermark-filigrane-visible
+      - ./watermark-filigrane-invisible:/app/watermark-filigrane-invisible
+      - ./watermark-signatures:/app/watermark-signatures
+      - ./watermark-signature_numérique:/app/watermark-signature_numérique
+    restart: unless-stopped
