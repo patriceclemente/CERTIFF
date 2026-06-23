@@ -1,7 +1,7 @@
 import sqlite3
 import hashlib
 import os
-
+import re
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "DB.db")   
 
@@ -62,7 +62,12 @@ def create_user(username, email, mot_de_passe):
         return "email_pris"
     if username_exists(username):
         return "username_pris"
-    
+    if len(mot_de_passe) < 8:
+        return "mdp_trop_court"
+    if not re.search(r"\d", mot_de_passe):          # au moins un chiffre
+        return "mdp_pas_chiffre"
+    if not re.search(r"[^A-Za-z0-9]", mot_de_passe): # au moins un caractère spécial
+        return "mdp_pas_special"
     # générer un sel aléatoire unique
     sel = os.urandom(16).hex()          # 16 octets aléatoires, en texte hexa
     # hasher le mot de passe

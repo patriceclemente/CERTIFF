@@ -598,6 +598,12 @@ def inscription():
         return jsonify({"ok": False, "message": "EMAIL DÉJÀ UTILISÉ."})
     elif resultat == "username_pris":
         return jsonify({"ok": False, "message": "NOM DÉJÀ PRIS."})
+    elif resultat == "mdp_trop_court":
+        return jsonify({"ok": False, "message": "mot de passe trop court (8 characteres minimum)"})
+    elif resultat == "mdp_pas_special":
+        return jsonify({"ok": False, "message": "au moins un charachter special"})
+    elif resultat == "mdp_pas_chiffre":
+        return jsonify({"ok": False, "message": "au moins un chiffre"})
     return jsonify({"ok": False, "message": "ERREUR INCONNUE."})
 
 
