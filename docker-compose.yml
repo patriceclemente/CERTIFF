@@ -8,8 +8,7 @@ services:
       - .env
     volumes:
       # Persistance de la base de données et des images traitées entre les redémarrages
-      - ./DB/DB.db:/app/DB/DB.db
-      - ./DB/stockage:/app/DB/stockage
+      - ./DB:/app/DB
       - ./images_brutes:/app/images_brutes
       - ./watermark-filigrane-visible:/app/watermark-filigrane-visible
       - ./watermark-filigrane-invisible:/app/watermark-filigrane-invisible
