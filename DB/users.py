@@ -103,8 +103,8 @@ def create_test_user():
     cursor.execute("SELECT COUNT(*) FROM users")
     count = cursor.fetchone()[0]
     if count == 0:
-        print("Création d'un utilisateur de test : testuser / testpass")
-        return create_user("testuser", "test@fakemailbox.com", "testpass") and confirm_user("test@fakemailbox.com")
+        print("Création d'un utilisateur de test : testuser / testp@ss1")
+        return create_user("testuser", "test@fakemailbox.com", "testp@ss1") and confirm_user("test@fakemailbox.com")
 
     return None
 
