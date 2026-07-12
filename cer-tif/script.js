@@ -383,7 +383,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-
+    /*
+    // --- LOGIQUE DU BOUTON NEXT [N] ---
+    const btnNextBlock = document.getElementById('btn-next');
+    if (btnNextBlock) {
+        btnNextBlock.addEventListener('click', () => {
+            const tabs = Array.from(document.querySelectorAll('.tab'));
+            const currentIndex = tabs.findIndex(tab => tab.classList.contains('active'));
+            
+            if (currentIndex !== -1 && currentIndex < tabs.length - 1) {
+                tabs[currentIndex + 1].click();
+            }
+        });
+    }
+        */
     // --- L'effet miroir pour TOUS les curseurs du terminal ---
     document.querySelectorAll('.hidden-terminal-input').forEach(input => {
         // On cherche automatiquement le miroir qui correspond à l'ID de l'input

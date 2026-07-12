@@ -1,5 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    fetch('/api/config')
+    .then(response => response.json())
+    .then(config => {
+        console.log("CONFIG RECUE :", config);
+
+        /*
+        document.getElementById('watermark-msg').value = config.wm_text;
+        document.getElementById('watermark-taillep').value = config.wm_pointsize;
+        document.getElementById('watermark-couleur').value = config.wm_color;
+        document.getElementById('watermark-opacite').value = config.wm_opacity;
+        document.getElementById('watermark-angle').value = config.wm_angle;
+        document.getElementById('watermark-espace').value = config.wm_spacing;
+
+        document.getElementById('stegano-msg').value = config.stegano_message;
+
+        document.getElementById('exif-auteur').value = config.exif_artist;
+        document.getElementById('exif-copy').value = config.exif_copyright;
+        document.getElementById('exif-date').value = config.exif_date || ""; 
+        // ICI
+        */
+
+        document.getElementById('watermark-defaults').innerHTML = `
+            <li>${config.wm_text}</li>
+            <li>${config.wm_pointsize}</li>
+            <li>${config.wm_color}</li>
+            <li>${config.wm_opacity}</li>
+            <li>${config.wm_angle}</li>
+            <li>${config.wm_spacing}</li>
+        `;
+        document.getElementById('stegano-defaults').innerHTML = `
+            <li>${config.stegano_message}</li>
+            <li>defaut</li>
+        `;
+
+        document.getElementById('exif-defaults').innerHTML = `
+            <li>${config.exif_artist}</li>
+            <li>${config.exif_copyright}</li>
+            <li>${config.exif_date || "Date actuelle"}</li>
+        `;  
+        
+
+        // mise à jour des miroirs terminal
+        document.querySelectorAll('.terminal-mirror').forEach(mirror => {
+            const id = mirror.id.replace("-mirror", "");
+            const input = document.getElementById(id);
+            if (input) {
+                mirror.textContent = input.value;
+            }
+        });
+
+    })
+    .catch(error => console.error("Erreur chargement config :", error));
+
     // ---------------------------------------------------------
     //  Outils de rendu du rapport d'audit
     // ---------------------------------------------------------
@@ -153,16 +206,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('action', apiAction);
         formData.append('file', fileInput.files[0]);
-        formData.append('wm_text', document.getElementById('watermark-msg')?.value || "© Cert-Art.fr");
-        formData.append('wm_size', document.getElementById('watermark-taillep')?.value || "35");
-        formData.append('wm_color', document.getElementById('watermark-couleur')?.value || "128,128,128");
-        formData.append('wm_opacity', document.getElementById('watermark-opacite')?.value || "0.2");
-        formData.append('wm_angle', document.getElementById('watermark-angle')?.value || "-45");
-        formData.append('wm_spacing', document.getElementById('watermark-espace')?.value || "300");
+
+        const wmText = document.getElementById('watermark-msg')?.value.trim();
+        const wmSize = document.getElementById('watermark-taillep')?.value.trim();
+        const wmColor = document.getElementById('watermark-couleur')?.value.trim();
+        const wmOpacity = document.getElementById('watermark-opacite')?.value.trim();
+        const wmAngle = document.getElementById('watermark-angle')?.value.trim();
+        const wmSpacing = document.getElementById('watermark-espace')?.value.trim();
+        const steganoMessage = document.getElementById('stegano-msg')?.value.trim();
+        const exifArtist = document.getElementById('exif-auteur')?.value.trim();
+        const exifCopyright = document.getElementById('exif-copy')?.value.trim();
+        const exifDate = document.getElementById('exif-date')?.value.trim();
+        
+        if (wmText) formData.append('wm_text', wmText);
+        if (wmSize) formData.append('wm_size', wmSize);
+        if (wmColor) formData.append('wm_color', wmColor);
+        if (wmOpacity) formData.append('wm_opacity', wmOpacity);
+        if (wmAngle) formData.append('wm_angle', wmAngle);
+        if (wmSpacing) formData.append('wm_spacing', wmSpacing);
+        if (steganoMessage) formData.append('stegano_message', steganoMessage);
+        if (exifArtist) formData.append('exif_artist', exifArtist);
+        if (exifCopyright) formData.append('exif_copyright', exifCopyright);
+        if (exifDate) formData.append('exif_date', exifDate);
+        
+        /*         formData.append('wm_text', wmText || "© Cert-Art.fr");
+        formData.append('wm_size', wmSize || "35");
+        formData.append('wm_color', wmColor || "128,128,128");
+        formData.append('wm_opacity', wmOpacity || "0.2");
+        formData.append('wm_angle', wmAngle || "-45");
+        formData.append('wm_spacing', wmSpacing || "300");
         formData.append('stegano_message', document.getElementById('stegano-msg')?.value || "defaut");
         formData.append('exif_artist', document.getElementById('exif-auteur')?.value || "");
         formData.append('exif_copyright', document.getElementById('exif-copy')?.value || "");
-        formData.append('exif_date', document.getElementById('exif-date')?.value || "");
+        formData.append('exif_date', document.getElementById('exif-date')?.value || ""); */
+
         formData.append('depot_id', window.currentDepotId || "");
 
         if (btnExecute) btnExecute.innerText = "[...] Calcul...";

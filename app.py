@@ -1,3 +1,4 @@
+#print("### BUILD TEST 123456 ###")
 import os
 import shutil
 import sys
@@ -11,10 +12,12 @@ import tempfile
 import threading
 import time
 import uuid
+from datetime import date
 from pathlib import Path
 from DB import init_DB
 from flask import Flask, request, jsonify, url_for, session, send_file
 from dotenv import load_dotenv
+from certifier_image import state
 
 load_dotenv()   # charge SECRET_KEY, GMAIL_ADDR, GMAIL_APP_PASS depuis .env
 init_DB.init()  # initialise DB
@@ -32,6 +35,21 @@ import mails    # mails.py (à la racine)
 # static_folder = cer-tif  -> Flask sert tout le dossier frontend
 # static_url_path = ""      -> fichiers accessibles à la racine (/style.css, /index.html, ...)
 app = Flask(__name__, static_folder="cer-tif", static_url_path="")
+
+@app.route("/api/config")
+def get_config():
+    return jsonify({
+        "wm_text": state.WM_TEXT,
+        "wm_color": state.WM_COLOR,
+        "wm_spacing": state.WM_SPACING,
+        "wm_pointsize": state.WM_POINTSIZE,
+        "wm_opacity": state.WM_OPACITY,
+        "wm_angle": state.WM_ANGLE,
+        "stegano_message": state.MESSAGE,
+        "exif_artist": state.EXIF_ARTIST,
+        "exif_copyright": state.EXIF_COPYRIGHT,
+        "exif_date": state.EXIF_DATE
+    })
 
 # clé secrète nécessaire pour signer les cookies de session (réutilise celle du .env)
 app.secret_key = os.environ["SECRET_KEY"]
@@ -723,19 +741,29 @@ def handle_api():
                 f.write(contenu)
  
         # parametres watermark
-        wm_text = request.form.get("wm_text", "© Cert-Art.fr")
-        wm_size = request.form.get("wm_size", "35")
-        wm_color = request.form.get("wm_color", "128,128,128")
-        wm_opacity = request.form.get("wm_opacity", "0.2")
-        wm_angle = request.form.get("wm_angle", "-45")
-        wm_spacing = request.form.get("wm_spacing", "300")
-        stegano_message = request.form.get("stegano_message", "defaut")
-        exif_artist = request.form.get("exif_artist", "").strip() or "© Cert-Art.fr"
+        wm_text = request.form.get("wm_text") or state.WM_TEXT
+        wm_size = request.form.get("wm_size") or state.WM_POINTSIZE
+        wm_color = request.form.get("wm_color") or state.WM_COLOR
+        wm_opacity = request.form.get("wm_opacity") or state.WM_OPACITY
+        wm_angle = request.form.get("wm_angle") or state.WM_ANGLE
+        wm_spacing = request.form.get("wm_spacing") or state.WM_SPACING
+
+        stegano_message = request.form.get("stegano_message", state.MESSAGE)
+        
+        exif_artist = request.form.get("exif_artist", "").strip() or state.EXIF_ARTIST  
         exif_copyright = request.form.get("exif_copyright", "").strip() or exif_artist
-        exif_date = request.form.get("exif_date", "").strip()
+        exif_date = request.form.get("exif_date", "").strip() or date.today().isoformat()
+
+#        WM_FONT = "Arial-Bold"
+#        WM_STROKE_COLOR = "0,0,0"
+#        WM_STROKE_WIDTH = 0.2
+#        MESSAGE = "defaut"
+
  
         # base_dir = work_base  ->  toutes les sorties du moteur vont dans
         # work_base/DB/stockage/... (donc supprimees a la fin)
+        #print("DEBUG WM_TEXT AVANT CLI =", wm_text, flush=True)
+        #print("DEBUG EXIF_ARTIST =", exif_artist, flush=True)
         argv = [
             "--no-interactive",
             "--wm-text", str(wm_text),

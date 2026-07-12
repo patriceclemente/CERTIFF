@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libimage-exiftool-perl \
     default-jre-headless \
     fonts-liberation \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Debian fournit ImageMagick 6 (commande "convert"), pas "magick" (IM7).

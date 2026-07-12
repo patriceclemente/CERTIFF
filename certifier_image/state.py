@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+#print("STATE FILE LOADED:", __file__)
+#print("WM_TEXT VALUE:", WM_TEXT)
+
 import os
 import tempfile
 from pathlib import Path
@@ -9,7 +12,8 @@ MODE_INTERACTIVE = True
 WM_MODE = "auto"
 
 PLACE_MODE = "all"
-WM_TEXT = "\u00a9 Cert-Art.fr"
+
+WM_TEXT = "\u00a9 bleu-pastel.fr"
 WM_TEXT_COLOR = "128,128,128"
 WM_SPACING = 300
 WM_POINTSIZE = 35
@@ -21,6 +25,12 @@ WM_STROKE_COLOR = "0,0,0"
 WM_STROKE_WIDTH = 0.2
 
 MESSAGE = "defaut"
+
+EXIF_DATE = None
+EXIF_ARTIST = "\u00a9 bleu-pastel.fr"
+EXIF_COPYRIGHT = "\u00a9 bleu-pastel.fr"
+
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SCRIPT_DIR.parent
 OPENSTEGO_JAR = PROJECT_DIR / "openstego.jar"
@@ -56,9 +66,7 @@ FILE_WM_INVISIBLE = None
 FILE_NUM_SIGNED = None
 SIG_FILE = None
 
-EXIF_DATE = None
-EXIF_ARTIST = "\u00a9 Cert-Art.fr"
-EXIF_COPYRIGHT = "\u00a9 Cert-Art.fr"
+
 
 KNOWN_ACTIONS = {
     "visible",
